@@ -1,0 +1,765 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>The Antilibrary</title>
+<meta name="description" content="A personal record of the books, films, articles, and ideas that left a mark — and the pile still waiting to." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..700&family=Newsreader:ital,opsz,wght@0,6..72,300..600;1,6..72,300..500&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+/* ============================================================
+   THE ANTILIBRARY — design template
+   Stable class names below are a contract for the markdown build.
+   Re-skin by editing :root tokens + the <style> block only.
+   ============================================================ */
+:root{
+  /* palette — antique naturalist's library */
+  --paper:      #efe6d1;   /* aged cream base */
+  --paper-deep: #e7dabb;   /* deeper card paper */
+  --paper-edge: #d9c9a3;   /* card edge / hairline on paper */
+  --ink:        #23201a;   /* warm near-black text */
+  --ink-soft:   #4a4338;
+  --graphite:   #756a56;   /* muted secondary text */
+  --green:      #1b3a2c;   /* deep forest — structural panels */
+  --green-2:    #2c5740;   /* brighter green — accents/hover */
+  --green-pale: #5f7d68;
+  --leather:    #6c4827;   /* leather brown — spines */
+  --leather-2:  #95683a;
+  --gold:       #ad8742;   /* antique gold leaf */
+  --gold-2:     #c9a860;
+  --rose:       #7a3b32;   /* oxblood — rare status accent */
+
+  --serif:  "Fraunces", Georgia, serif;
+  --read:   "Newsreader", Georgia, serif;
+  --mono:   "IBM Plex Mono", ui-monospace, monospace;
+
+  --maxw: 1180px;
+  --ease: cubic-bezier(.2,.7,.2,1);
+}
+
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0;
+  font-family:var(--read);
+  font-optical-sizing:auto;
+  color:var(--ink);
+  background:var(--paper);
+  background-image:
+    radial-gradient(120% 90% at 50% -10%, rgba(173,135,66,.10), transparent 60%),
+    radial-gradient(140% 120% at 100% 120%, rgba(27,58,44,.10), transparent 55%);
+  line-height:1.6;
+  -webkit-font-smoothing:antialiased;
+  overflow-x:hidden;
+}
+/* paper grain overlay */
+body::before{
+  content:"";position:fixed;inset:0;z-index:1;pointer-events:none;opacity:.5;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.045'/%3E%3C/svg%3E");
+  mix-blend-mode:multiply;
+}
+.wrap{max-width:var(--maxw);margin:0 auto;padding:0 28px;position:relative;z-index:2}
+
+a{color:inherit;text-decoration:none}
+img{max-width:100%;display:block}
+
+/* ---------- decorative rules ---------- */
+.rule{height:1px;background:var(--paper-edge);border:0;margin:0}
+.rule--gold{height:0;border:0;border-top:1px solid var(--gold);
+  box-shadow:0 3px 0 -2px var(--gold);}
+.ornament{display:flex;align-items:center;justify-content:center;gap:14px;color:var(--gold);
+  font-family:var(--serif);font-size:18px;letter-spacing:.3em}
+.ornament::before,.ornament::after{content:"";height:1px;flex:1;max-width:180px;
+  background:linear-gradient(90deg,transparent,var(--gold))}
+.ornament::after{background:linear-gradient(90deg,var(--gold),transparent)}
+
+/* =================== NAV =================== */
+.site-nav{
+  position:sticky;top:0;z-index:50;
+  background:var(--green);
+  color:#f3ecd9;
+  border-bottom:1px solid rgba(173,135,66,.45);
+  box-shadow:0 1px 0 rgba(173,135,66,.25), 0 8px 24px -18px #000;
+}
+.site-nav__inner{max-width:var(--maxw);margin:0 auto;padding:0 28px;
+  display:flex;align-items:center;justify-content:space-between;gap:18px;height:62px}
+.site-nav__mark{font-family:var(--serif);font-weight:600;font-size:21px;letter-spacing:.02em;
+  display:flex;align-items:baseline;gap:9px}
+.site-nav__mark b{color:var(--gold-2);font-weight:600}
+.site-nav__mark .amp{color:var(--green-pale);font-style:italic;font-size:15px}
+.site-nav__links{display:flex;gap:4px;flex-wrap:wrap}
+.site-nav__links a{
+  font-family:var(--mono);font-size:12px;letter-spacing:.16em;text-transform:uppercase;
+  color:#d8cdb2;padding:8px 12px;border-radius:2px;position:relative;transition:color .25s var(--ease)}
+.site-nav__links a::after{content:"";position:absolute;left:12px;right:12px;bottom:4px;height:1px;
+  background:var(--gold-2);transform:scaleX(0);transform-origin:left;transition:transform .3s var(--ease)}
+.site-nav__links a:hover,.site-nav__links a.is-active{color:#fff}
+.site-nav__links a:hover::after,.site-nav__links a.is-active::after{transform:scaleX(1)}
+
+/* =================== MASTHEAD =================== */
+.site-header{
+  background:
+    linear-gradient(180deg, rgba(27,58,44,.0), rgba(27,58,44,.05)),
+    var(--green);
+  color:#f3ecd9;position:relative;overflow:hidden;
+  border-bottom:1px solid rgba(173,135,66,.4);
+}
+.site-header::after{ /* faint botanical/marbled wash */
+  content:"";position:absolute;inset:0;opacity:.5;pointer-events:none;
+  background:
+    radial-gradient(60% 80% at 12% 20%, rgba(95,125,104,.30), transparent 60%),
+    radial-gradient(50% 70% at 90% 90%, rgba(149,104,58,.22), transparent 60%);
+}
+.site-header__inner{max-width:860px;margin:0 auto;padding:84px 28px 70px;text-align:center;position:relative;z-index:2}
+.eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.34em;text-transform:uppercase;color:var(--gold-2);margin:0 0 22px}
+.site-title{font-family:var(--serif);font-weight:500;font-size:clamp(54px,9vw,108px);line-height:.92;margin:0;
+  letter-spacing:-.01em;color:#f5eeda;text-shadow:0 1px 0 rgba(0,0,0,.25)}
+.site-title em{font-style:italic;color:var(--gold-2)}
+.site-sub{font-family:var(--read);font-size:clamp(16px,2.2vw,20px);color:#cfc4a8;max-width:46ch;margin:26px auto 0;font-weight:300}
+.header-rule{display:flex;align-items:center;justify-content:center;gap:16px;margin:34px auto 0;color:var(--gold-2);font-size:15px;letter-spacing:.4em}
+.header-rule::before,.header-rule::after{content:"";height:1px;width:90px;background:linear-gradient(90deg,transparent,var(--gold-2))}
+.header-rule::after{background:linear-gradient(90deg,var(--gold-2),transparent)}
+
+/* =================== SECTION SCAFFOLD =================== */
+.section{padding:78px 0 14px;scroll-margin-top:78px}
+.section__head{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;flex-wrap:wrap;margin-bottom:8px}
+.section__label{font-family:var(--mono);font-size:12px;letter-spacing:.26em;text-transform:uppercase;color:var(--leather-2);display:flex;align-items:center;gap:12px}
+.section__label .num{color:var(--gold);border:1px solid var(--gold);border-radius:50%;width:26px;height:26px;
+  display:grid;place-items:center;font-size:11px}
+.section__title{font-family:var(--serif);font-weight:500;font-size:clamp(34px,5vw,52px);margin:6px 0 0;line-height:1;color:var(--ink)}
+.section__note{font-family:var(--read);color:var(--graphite);max-width:54ch;margin:14px 0 30px;font-size:17px}
+
+/* =================== FILTERS =================== */
+.filters{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:6px 0 30px;
+  padding-bottom:22px;border-bottom:1px solid var(--paper-edge)}
+.filter-chip{font-family:var(--mono);font-size:11.5px;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--ink-soft);background:transparent;border:1px solid var(--paper-edge);
+  padding:7px 14px;border-radius:999px;cursor:pointer;transition:all .22s var(--ease)}
+.filter-chip:hover{border-color:var(--leather-2);color:var(--leather)}
+.filter-chip.is-active{background:var(--green);color:#f3ecd9;border-color:var(--green)}
+.search{margin-left:auto;position:relative}
+.search input{font-family:var(--mono);font-size:12px;letter-spacing:.04em;color:var(--ink);
+  background:var(--paper-deep);border:1px solid var(--paper-edge);border-radius:999px;
+  padding:9px 16px 9px 34px;width:210px;outline:none;transition:border-color .22s,box-shadow .22s}
+.search input:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(173,135,66,.16)}
+.search::before{content:"⌕";position:absolute;left:13px;top:50%;transform:translateY(-50%);color:var(--leather-2);font-size:15px}
+
+/* =================== MEDIA GRID + CARDS =================== */
+.section-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(248px,1fr));gap:26px 24px;margin-bottom:18px}
+.media-card{
+  position:relative;display:flex;flex-direction:column;background:var(--paper-deep);
+  border:1px solid var(--paper-edge);border-radius:3px;overflow:hidden;
+  box-shadow:0 1px 0 rgba(255,255,255,.4) inset, 0 10px 26px -22px #000;
+  transition:transform .3s var(--ease), box-shadow .3s var(--ease), border-color .3s var(--ease);
+}
+.media-card::before{ /* leather spine */
+  content:"";position:absolute;left:0;top:0;bottom:0;width:7px;
+  background:linear-gradient(180deg,var(--leather-2),var(--leather));
+  box-shadow:1px 0 2px rgba(0,0,0,.25) inset;z-index:3}
+.media-card:hover{transform:translateY(-5px);border-color:var(--gold);
+  box-shadow:0 1px 0 rgba(255,255,255,.4) inset, 0 22px 40px -26px rgba(40,25,5,.7)}
+.media-card__cover{aspect-ratio:3/2;position:relative;margin-left:7px;
+  background:linear-gradient(135deg,var(--green-2),var(--green));
+  display:grid;place-items:center;padding:18px;border-bottom:1px solid var(--paper-edge)}
+.media-card__cover .cover-fallback{font-family:var(--serif);font-style:italic;font-weight:500;
+  color:rgba(245,238,218,.92);text-align:center;font-size:19px;line-height:1.2;text-shadow:0 1px 2px rgba(0,0,0,.3)}
+.media-card__cover[data-tint="brown"]{background:linear-gradient(135deg,var(--leather-2),var(--leather))}
+.media-card__cover[data-tint="gold"]{background:linear-gradient(135deg,var(--gold-2),var(--leather-2))}
+.media-card__cover[data-tint="ink"]{background:linear-gradient(135deg,#3a4a40,#1b2620)}
+.media-card__body{padding:16px 18px 18px;display:flex;flex-direction:column;flex:1;margin-left:7px}
+.media-card__type{font-family:var(--mono);font-size:10px;letter-spacing:.2em;text-transform:uppercase;
+  color:var(--green-2);margin-bottom:9px;display:flex;align-items:center;gap:7px}
+.media-card__type::before{content:"";width:5px;height:5px;border-radius:50%;background:var(--gold)}
+.media-card__title{font-family:var(--serif);font-weight:600;font-size:21px;line-height:1.12;margin:0 0 4px;color:var(--ink)}
+.media-card__creator{font-family:var(--read);font-style:italic;color:var(--ink-soft);font-size:15px;margin-bottom:12px}
+.media-card__impact{display:flex;gap:4px;margin-bottom:12px}
+.media-card__impact i{width:8px;height:8px;border-radius:50%;border:1px solid var(--gold);display:inline-block}
+.media-card__impact i.on{background:var(--gold)}
+.media-card__meta{font-family:var(--mono);font-size:11px;color:var(--graphite);letter-spacing:.02em;
+  margin-top:auto;padding-top:10px;border-top:1px dashed var(--paper-edge);display:flex;flex-wrap:wrap;gap:4px 10px}
+.media-card__tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:11px}
+.media-card__tags span{font-family:var(--mono);font-size:10px;letter-spacing:.06em;color:var(--leather);
+  background:rgba(149,104,58,.12);border:1px solid rgba(149,104,58,.25);padding:2px 8px;border-radius:3px}
+
+/* to-consume modifier — the antilibrary stack */
+.media-card--to-consume{background:repeating-linear-gradient(135deg,var(--paper) 0 9px,var(--paper-deep) 9px 18px);
+  border-style:dashed;box-shadow:none;opacity:.96}
+.media-card--to-consume::before{background:linear-gradient(180deg,var(--green-pale),var(--green-2));opacity:.8}
+.media-card--to-consume .media-card__cover{background:linear-gradient(135deg,#c9b994,#b6a37c);border-bottom-style:dashed}
+.media-card--to-consume .media-card__cover .cover-fallback{color:rgba(35,32,26,.6)}
+.media-card--to-consume .media-card__type{color:var(--leather-2)}
+.media-card--to-consume:hover{transform:translateY(-4px);border-color:var(--green-2)}
+.tag-status{position:absolute;top:12px;right:12px;z-index:4;font-family:var(--mono);font-size:9.5px;
+  letter-spacing:.14em;text-transform:uppercase;background:var(--paper);color:var(--green);
+  border:1px solid var(--green-2);padding:3px 8px;border-radius:999px}
+
+/* =================== QUOTES =================== */
+.quotes{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:36px 48px;margin:8px 0 20px}
+.quote{position:relative;padding:8px 6px 8px 0}
+.quote::before{content:"\201C";font-family:var(--serif);font-size:90px;line-height:.6;color:var(--gold);
+  opacity:.5;position:absolute;left:-6px;top:14px}
+.quote__text{font-family:var(--serif);font-weight:400;font-style:italic;font-size:clamp(22px,2.6vw,27px);
+  line-height:1.32;color:var(--ink);margin:0 0 16px;padding-left:30px}
+.quote__author{font-family:var(--mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--leather);padding-left:30px}
+.quote__source{font-family:var(--read);font-style:italic;color:var(--graphite);font-size:14px;display:block;margin-top:3px;padding-left:30px}
+.quote__source a{border-bottom:1px solid var(--gold)}
+
+/* =================== MISOGI =================== */
+.misogi-list{display:flex;flex-direction:column;gap:4px;margin:8px 0 20px}
+.misogi{display:grid;grid-template-columns:160px 1fr;gap:28px;align-items:start;
+  padding:30px 0;border-top:1px solid var(--paper-edge)}
+.misogi:last-child{border-bottom:1px solid var(--paper-edge)}
+.misogi__year{font-family:var(--serif);font-weight:300;font-size:clamp(46px,6vw,68px);line-height:.9;color:var(--green);letter-spacing:-.02em}
+.misogi__challenge{font-family:var(--serif);font-weight:500;font-size:26px;line-height:1.15;margin:0 0 8px;color:var(--ink)}
+.misogi__status{display:inline-flex;align-items:center;gap:7px;font-family:var(--mono);font-size:10.5px;
+  letter-spacing:.16em;text-transform:uppercase;padding:4px 11px;border-radius:999px;margin-bottom:14px}
+.misogi__status::before{content:"";width:6px;height:6px;border-radius:50%}
+.misogi__status[data-status="completed"]{color:#eaf3ec;background:var(--green-2);}
+.misogi__status[data-status="completed"]::before{background:var(--gold-2)}
+.misogi__status[data-status="planned"]{color:var(--leather);background:transparent;border:1px solid var(--gold)}
+.misogi__status[data-status="planned"]::before{background:var(--gold)}
+.misogi__status[data-status="in-progress"]{color:#fff;background:var(--leather-2)}
+.misogi__status[data-status="in-progress"]::before{background:#fff}
+.misogi__status[data-status="failed"]{color:#fff;background:var(--rose)}
+.misogi__notes{font-family:var(--read);font-size:17px;color:var(--ink-soft);max-width:60ch;margin:0}
+
+/* =================== JOURNEY =================== */
+.journey-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:40px 34px;margin:8px 0 24px}
+.journey{position:relative}
+.journey__image{aspect-ratio:4/5;border-radius:2px;overflow:hidden;position:relative;
+  background:linear-gradient(160deg,var(--green-2),var(--leather));
+  border:7px solid #f6f0df;box-shadow:0 18px 34px -22px rgba(30,20,5,.7);
+  transform:rotate(-1.2deg);transition:transform .4s var(--ease)}
+.journey:nth-child(even) .journey__image{transform:rotate(1.4deg)}
+.journey:hover .journey__image{transform:rotate(0)}
+.journey__image .cover-fallback{position:absolute;inset:0;display:grid;place-items:center;
+  font-family:var(--serif);font-style:italic;color:rgba(246,240,223,.85);font-size:18px;text-align:center;padding:20px}
+.journey__date{font-family:var(--mono);font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--gold);margin:18px 0 5px}
+.journey__title{font-family:var(--serif);font-weight:600;font-size:25px;margin:0 0 8px;color:var(--ink)}
+.journey__body{font-family:var(--read);font-size:16px;color:var(--ink-soft);max-width:42ch;margin:0}
+
+/* =================== ITEM DETAIL TEMPLATE =================== */
+.item-demo{margin:70px 0 30px;padding:40px 0;border-top:1px dashed var(--leather-2);border-bottom:1px dashed var(--leather-2)}
+.item-demo__flag{font-family:var(--mono);font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--leather-2);margin-bottom:26px}
+.item{max-width:720px;margin:0 auto;background:var(--paper-deep);border:1px solid var(--paper-edge);
+  border-radius:3px;padding:48px clamp(24px,5vw,64px);box-shadow:0 30px 60px -40px rgba(30,20,5,.6);position:relative}
+.item::before{content:"";position:absolute;left:0;top:0;bottom:0;width:9px;border-radius:3px 0 0 3px;
+  background:linear-gradient(180deg,var(--leather-2),var(--leather))}
+.item__type{font-family:var(--mono);font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--green-2);margin-bottom:14px}
+.item__title{font-family:var(--serif);font-weight:600;font-size:clamp(34px,5vw,46px);line-height:1.04;margin:0 0 6px}
+.item__creator{font-family:var(--read);font-style:italic;font-size:20px;color:var(--ink-soft);margin-bottom:18px}
+.item__meta{font-family:var(--mono);font-size:11.5px;color:var(--graphite);letter-spacing:.03em;
+  display:flex;flex-wrap:wrap;gap:6px 18px;padding:14px 0;border-top:1px solid var(--paper-edge);border-bottom:1px solid var(--paper-edge)}
+.item__meta b{color:var(--leather);font-weight:500}
+.item__tags{display:flex;flex-wrap:wrap;gap:8px;margin:18px 0 30px}
+.item__tags span{font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;color:var(--leather);
+  background:rgba(149,104,58,.12);border:1px solid rgba(149,104,58,.25);padding:3px 9px;border-radius:3px}
+.item-body{font-family:var(--read);font-size:18.5px;line-height:1.72;color:var(--ink)}
+.item-body p{margin:0 0 22px}
+.item-body p:first-of-type::first-letter{font-family:var(--serif);font-weight:600;float:left;
+  font-size:64px;line-height:.78;padding:6px 12px 0 0;color:var(--leather)}
+.item-body h3{font-family:var(--serif);font-weight:600;font-size:24px;margin:34px 0 12px;color:var(--green)}
+.item-body blockquote{margin:26px 0;padding:6px 0 6px 24px;border-left:2px solid var(--gold);
+  font-family:var(--serif);font-style:italic;font-size:22px;color:var(--ink-soft)}
+.item-body ul{margin:0 0 22px;padding-left:22px}
+.item-body li{margin-bottom:8px}
+.item-body li::marker{color:var(--gold)}
+
+/* the handwritten scan — a photo taped to the page */
+.scan{margin:40px auto;max-width:440px;position:relative;background:#fbf7ec;padding:16px 16px 18px;
+  border:1px solid #e4d8b9;box-shadow:0 22px 40px -26px rgba(30,20,5,.75);transform:rotate(-1.5deg)}
+.scan::before,.scan::after{content:"";position:absolute;width:104px;height:30px;top:-14px;
+  background:rgba(149,104,58,.32);border:1px solid rgba(149,104,58,.25);
+  box-shadow:0 2px 6px rgba(0,0,0,.12)}
+.scan::before{left:24px;transform:rotate(-5deg)}
+.scan::after{right:24px;transform:rotate(4deg)}
+.scan__img{aspect-ratio:4/3;background:
+   repeating-linear-gradient(0deg,transparent 0 27px, rgba(95,125,104,.22) 27px 28px),
+   linear-gradient(180deg,#fdfaf1,#f4eddc);
+  display:grid;place-items:center;border:1px solid #ece0c3}
+.scan__img .scan-note{font-family:var(--serif);font-style:italic;color:var(--green-pale);font-size:15px;text-align:center;padding:0 24px;opacity:.85}
+.scan__caption{font-family:var(--mono);font-size:11.5px;line-height:1.6;color:var(--graphite);
+  margin-top:14px;text-align:center;letter-spacing:.01em}
+.scan__caption b{color:var(--leather);font-weight:500;letter-spacing:.1em;text-transform:uppercase;font-size:10px;display:block;margin-bottom:4px}
+.item__back{display:inline-flex;align-items:center;gap:8px;margin-top:36px;font-family:var(--mono);
+  font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--green-2);
+  border-bottom:1px solid transparent;transition:border-color .25s}
+.item__back:hover{border-color:var(--green-2)}
+
+/* =================== FOOTER =================== */
+.site-footer{background:var(--green);color:#cfc4a8;margin-top:70px;border-top:1px solid rgba(173,135,66,.4)}
+.site-footer__inner{max-width:var(--maxw);margin:0 auto;padding:46px 28px;
+  display:flex;align-items:center;justify-content:space-between;gap:18px;flex-wrap:wrap}
+.site-footer__mark{font-family:var(--serif);font-style:italic;font-size:20px;color:#f3ecd9}
+.site-footer small{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--green-pale)}
+
+/* =================== MOTION =================== */
+.reveal{opacity:0;transform:translateY(18px);transition:opacity .7s var(--ease),transform .7s var(--ease)}
+.reveal.in{opacity:1;transform:none}
+@media (prefers-reduced-motion:reduce){.reveal{opacity:1;transform:none;transition:none}
+  *{scroll-behavior:auto !important}}
+
+/* =================== RESPONSIVE =================== */
+@media (max-width:720px){
+  .site-nav__inner{height:auto;padding:12px 20px;flex-direction:column;align-items:flex-start;gap:8px}
+  .site-nav__links{gap:0}
+  .misogi{grid-template-columns:1fr;gap:8px}
+  .search{margin-left:0;width:100%}
+  .search input{width:100%}
+}
+.hidden{display:none !important}
+</style>
+</head>
+<body>
+
+<!-- =================== NAV =================== -->
+<nav class="site-nav">
+  <div class="site-nav__inner">
+    <div class="site-nav__mark">The <b>Antilibrary</b> <span class="amp">&amp; marginalia</span></div>
+    <div class="site-nav__links">
+      <a href="#library">Library</a>
+      <a href="#antilibrary">Antilibrary</a>
+      <a href="#quotes">Quotes</a>
+      <a href="#misogi">Misogi</a>
+      <a href="#journey">Journey</a>
+    </div>
+  </div>
+</nav>
+
+<!-- =================== MASTHEAD =================== -->
+<header class="site-header">
+  <div class="site-header__inner">
+    <p class="eyebrow reveal">A private catalogue, kept in the open</p>
+    <h1 class="site-title reveal">The <em>Anti</em>library</h1>
+    <p class="site-sub reveal">The books, films, articles, and ideas that left a mark — and the far larger pile still waiting to. What I read, watched, and wrote in the margins.</p>
+    <div class="header-rule reveal">✦</div>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <!-- =================== LIBRARY =================== -->
+  <section class="section" id="library">
+    <div class="section__head reveal">
+      <div>
+        <div class="section__label"><span class="num">I</span> Consumed</div>
+        <h2 class="section__title">The Library</h2>
+      </div>
+    </div>
+    <p class="section__note reveal">Things finished and kept. The spine colour means nothing; the marginalia means everything.</p>
+
+    <!-- filter bar: vanilla JS over .media-card[data-media] + text -->
+    <div class="filters reveal">
+      <button class="filter-chip is-active" data-filter="all">All</button>
+      <button class="filter-chip" data-filter="book">Books</button>
+      <button class="filter-chip" data-filter="film">Film &amp; TV</button>
+      <button class="filter-chip" data-filter="video">Video</button>
+      <button class="filter-chip" data-filter="article">Articles</button>
+      <button class="filter-chip" data-filter="podcast">Podcasts</button>
+      <div class="search"><input type="search" id="lib-search" placeholder="search the stacks…" aria-label="Search the library" /></div>
+    </div>
+
+    <div class="section-grid" id="library-grid">
+
+      <!-- one .media-card = one template loop iteration -->
+      <a class="media-card reveal" href="item/sample.html" data-media="book" data-status="consumed">
+        <!-- REPLACE: cover image — assets/img/covers/shadow-torturer.jpg -->
+        <div class="media-card__cover" data-tint="ink"><span class="cover-fallback">The Shadow<br>of the Torturer</span></div>
+        <div class="media-card__body">
+          <div class="media-card__type">Book</div>
+          <h3 class="media-card__title">The Shadow of the Torturer</h3>
+          <div class="media-card__creator">Gene Wolfe</div>
+          <div class="media-card__impact" aria-label="impact 5 of 5"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i></div>
+          <div class="media-card__tags"><span>science-fiction</span><span>memory</span></div>
+          <div class="media-card__meta"><span>2026 · 02</span><span>via r/printSF</span></div>
+        </div>
+      </a>
+
+      <a class="media-card reveal" href="item/sample.html" data-media="book" data-status="consumed">
+        <!-- REPLACE: cover — meditations.jpg -->
+        <div class="media-card__cover" data-tint="brown"><span class="cover-fallback">Meditations</span></div>
+        <div class="media-card__body">
+          <div class="media-card__type">Book</div>
+          <h3 class="media-card__title">Meditations</h3>
+          <div class="media-card__creator">Marcus Aurelius</div>
+          <div class="media-card__impact" aria-label="impact 5 of 5"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i></div>
+          <div class="media-card__tags"><span>stoicism</span><span>re-read</span></div>
+          <div class="media-card__meta"><span>2026 · 01</span><span>a worn copy</span></div>
+        </div>
+      </a>
+
+      <a class="media-card reveal" href="item/sample.html" data-media="film" data-status="consumed">
+        <!-- REPLACE: cover — the-bear.jpg -->
+        <div class="media-card__cover"><span class="cover-fallback">The Bear</span></div>
+        <div class="media-card__body">
+          <div class="media-card__type">Film &amp; TV</div>
+          <h3 class="media-card__title">The Bear</h3>
+          <div class="media-card__creator">Christopher Storer</div>
+          <div class="media-card__impact" aria-label="impact 4 of 5"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i></div>
+          <div class="media-card__tags"><span>craft</span><span>pressure</span></div>
+          <div class="media-card__meta"><span>2026 · 03</span><span>via a friend</span></div>
+        </div>
+      </a>
+
+      <a class="media-card reveal" href="item/sample.html" data-media="book" data-status="consumed">
+        <!-- REPLACE: cover — sandworm.jpg -->
+        <div class="media-card__cover" data-tint="ink"><span class="cover-fallback">Sandworm</span></div>
+        <div class="media-card__body">
+          <div class="media-card__type">Book</div>
+          <h3 class="media-card__title">Sandworm</h3>
+          <div class="media-card__creator">Andy Greenberg</div>
+          <div class="media-card__impact" aria-label="impact 4 of 5"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i></div>
+          <div class="media-card__tags"><span>security</span><span>cyberwar</span></div>
+          <div class="media-card__meta"><span>2026 · 04</span><span>via work</span></div>
+        </div>
+      </a>
+
+      <a class="media-card reveal" href="item/sample.html" data-media="podcast" data-status="consumed">
+        <!-- REPLACE: cover — daily-stoic.jpg -->
+        <div class="media-card__cover" data-tint="gold"><span class="cover-fallback">The Daily Stoic</span></div>
+        <div class="media-card__body">
+          <div class="media-card__type">Podcast</div>
+          <h3 class="media-card__title">The Daily Stoic</h3>
+          <div class="media-card__creator">Ryan Holiday</div>
+          <div class="media-card__impact" aria-label="impact 3 of 5"><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i></div>
+          <div class="media-card__tags"><span>stoicism</span><span>ritual</span></div>
+          <div class="media-card__meta"><span>daily</span><span>06:30 ritual</span></div>
+        </div>
+      </a>
+
+      <a class="media-card reveal" href="item/sample.html" data-media="article" data-status="consumed">
+        <!-- REPLACE: cover — antilibrary-essay.jpg -->
+        <div class="media-card__cover" data-tint="brown"><span class="cover-fallback">The Antilibrary</span></div>
+        <div class="media-card__body">
+          <div class="media-card__type">Article</div>
+          <h3 class="media-card__title">An Antilibrary</h3>
+          <div class="media-card__creator">Maria Popova</div>
+          <div class="media-card__impact" aria-label="impact 4 of 5"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i></div>
+          <div class="media-card__tags"><span>reading</span><span>the-pile</span></div>
+          <div class="media-card__meta"><span>2026 · 02</span><span>via newsletter</span></div>
+        </div>
+      </a>
+
+    </div>
+  </section>
+
+  <hr class="rule--gold" style="margin:30px 0 0" />
+
+  <!-- =================== ANTILIBRARY =================== -->
+  <section class="section" id="antilibrary">
+    <div class="section__head reveal">
+      <div>
+        <div class="section__label"><span class="num">II</span> To consume</div>
+        <h2 class="section__title">The Antilibrary</h2>
+      </div>
+    </div>
+    <p class="section__note reveal">The unread pile, kept on purpose. Taleb's point: the books you haven't read are worth more than the ones you have — they're everything you still get to find out.</p>
+
+    <div class="section-grid">
+
+      <a class="media-card media-card--to-consume reveal" href="item/sample.html" data-media="book" data-status="to-consume">
+        <span class="tag-status">To read</span>
+        <!-- REPLACE: cover — claw-of-the-conciliator.jpg -->
+        <div class="media-card__cover"><span class="cover-fallback">The Claw of the Conciliator</span></div>
+        <div class="media-card__body">
+          <div class="media-card__type">Book</div>
+          <h3 class="media-card__title">The Claw of the Conciliator</h3>
+          <div class="media-card__creator">Gene Wolfe</div>
+          <div class="media-card__tags"><span>science-fiction</span></div>
+          <div class="media-card__meta"><span>queued 2026 · 03</span><span>via vol. 1</span></div>
+        </div>
+      </a>
+
+      <a class="media-card media-card--to-consume reveal" href="item/sample.html" data-media="book" data-status="to-consume">
+        <span class="tag-status">To read</span>
+        <!-- REPLACE: cover — discourses.jpg -->
+        <div class="media-card__cover"><span class="cover-fallback">Discourses</span></div>
+        <div class="media-card__body">
+          <div class="media-card__type">Book</div>
+          <h3 class="media-card__title">Discourses</h3>
+          <div class="media-card__creator">Epictetus</div>
+          <div class="media-card__tags"><span>stoicism</span></div>
+          <div class="media-card__meta"><span>queued 2026 · 02</span><span>via Meditations</span></div>
+        </div>
+      </a>
+
+      <a class="media-card media-card--to-consume reveal" href="item/sample.html" data-media="video" data-status="to-consume">
+        <span class="tag-status">To watch</span>
+        <!-- REPLACE: cover — smart-notes-talk.jpg -->
+        <div class="media-card__cover"><span class="cover-fallback">How to Take Smart Notes</span></div>
+        <div class="media-card__body">
+          <div class="media-card__type">Video</div>
+          <h3 class="media-card__title">How to Take Smart Notes</h3>
+          <div class="media-card__creator">Sönke Ahrens · talk</div>
+          <div class="media-card__tags"><span>method</span><span>note-taking</span></div>
+          <div class="media-card__meta"><span>queued 2026 · 05</span><span>saw on a saved reel</span></div>
+        </div>
+      </a>
+
+      <a class="media-card media-card--to-consume reveal" href="item/sample.html" data-media="podcast" data-status="to-consume">
+        <span class="tag-status">Queued</span>
+        <!-- REPLACE: cover — acquired-tsmc.jpg -->
+        <div class="media-card__cover"><span class="cover-fallback">Acquired — TSMC</span></div>
+        <div class="media-card__body">
+          <div class="media-card__type">Podcast</div>
+          <h3 class="media-card__title">Acquired: TSMC</h3>
+          <div class="media-card__creator">Ben Gilbert &amp; David Rosenthal</div>
+          <div class="media-card__tags"><span>business</span><span>silicon</span></div>
+          <div class="media-card__meta"><span>queued 2026 · 05</span><span>via a friend</span></div>
+        </div>
+      </a>
+
+    </div>
+  </section>
+
+  <hr class="rule--gold" style="margin:30px 0 0" />
+
+  <!-- =================== QUOTES =================== -->
+  <section class="section" id="quotes">
+    <div class="section__head reveal">
+      <div>
+        <div class="section__label"><span class="num">III</span> Kept lines</div>
+        <h2 class="section__title">Quotes</h2>
+      </div>
+    </div>
+    <p class="section__note reveal">The marginalia that outlived the book.</p>
+
+    <div class="quotes">
+      <figure class="quote reveal">
+        <blockquote class="quote__text">We are what we repeatedly do. Excellence, then, is not an act, but a habit.</blockquote>
+        <figcaption class="quote__author">Will Durant
+          <span class="quote__source">summarising Aristotle · <em>The Story of Philosophy</em></span>
+        </figcaption>
+      </figure>
+
+      <figure class="quote reveal">
+        <blockquote class="quote__text">Read books are far less valuable than unread ones. The library should contain as much of what you do not know as your finances allow.</blockquote>
+        <figcaption class="quote__author">Nassim Nicholas Taleb
+          <span class="quote__source"><em>The Black Swan</em></span>
+        </figcaption>
+      </figure>
+
+      <figure class="quote reveal">
+        <blockquote class="quote__text">You could leave life right now. Let that determine what you do and say and think.</blockquote>
+        <figcaption class="quote__author">Marcus Aurelius
+          <span class="quote__source"><em>Meditations</em>, II.11</span>
+        </figcaption>
+      </figure>
+
+      <figure class="quote reveal">
+        <blockquote class="quote__text">It is not that we have a short time to live, but that we waste a lot of it.</blockquote>
+        <figcaption class="quote__author">Seneca
+          <span class="quote__source"><em>On the Shortness of Life</em></span>
+        </figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <hr class="rule--gold" style="margin:30px 0 0" />
+
+  <!-- =================== MISOGI =================== -->
+  <section class="section" id="misogi">
+    <div class="section__head reveal">
+      <div>
+        <div class="section__label"><span class="num">IV</span> One hard thing a year</div>
+        <h2 class="section__title">Misogi</h2>
+      </div>
+    </div>
+    <p class="section__note reveal">A Misogi is one challenge a year you have a real chance of not finishing. That's the whole point — if you're sure you'll make it, pick something harder.</p>
+
+    <div class="misogi-list">
+      <div class="misogi reveal">
+        <div class="misogi__year">2026</div>
+        <div>
+          <h3 class="misogi__challenge">Kumano Kodo</h3>
+          <span class="misogi__status" data-status="completed">Completed</span>
+          <p class="misogi__notes">The first one. A multi-day pilgrimage across the Kii Peninsula, refuge to refuge. Walked it through, earned the stamp, learned that the wall is mostly in the head.</p>
+        </div>
+      </div>
+
+      <div class="misogi reveal">
+        <div class="misogi__year">2027</div>
+        <div>
+          <h3 class="misogi__challenge">Camino de Santiago · Camino Francés</h3>
+          <span class="misogi__status" data-status="planned">Planned · Sept 1</span>
+          <p class="misogi__notes">780 km on foot, St-Jean-Pied-de-Port to Santiago de Compostela. ~33 days. With Kumano done, this earns the dual-pilgrim credential — held by only a few thousand people ever.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <hr class="rule--gold" style="margin:30px 0 0" />
+
+  <!-- =================== JOURNEY =================== -->
+  <section class="section" id="journey">
+    <div class="section__head reveal">
+      <div>
+        <div class="section__label"><span class="num">V</span> The arc</div>
+        <h2 class="section__title">Journey</h2>
+      </div>
+    </div>
+    <p class="section__note reveal">2026 — the year I stopped drifting and started building the life I actually want. This is the beginning of it.</p>
+
+    <div class="journey-list">
+      <figure class="journey reveal">
+        <!-- REPLACE: photo — assets/img/journey/the-beginning.jpg -->
+        <div class="journey__image"><span class="cover-fallback">A photo goes here</span></div>
+        <figcaption>
+          <div class="journey__date">Jan 2026</div>
+          <h3 class="journey__title">The Beginning</h3>
+          <p class="journey__body">A line in the sand. Less consuming, more building. Everything after this point is on purpose.</p>
+        </figcaption>
+      </figure>
+
+      <figure class="journey reveal">
+        <!-- REPLACE: photo — assets/img/journey/kumano.jpg -->
+        <div class="journey__image"><span class="cover-fallback">A photo goes here</span></div>
+        <figcaption>
+          <div class="journey__date">Sept 2026</div>
+          <h3 class="journey__title">Kumano Kodo</h3>
+          <p class="journey__body">The first Misogi. Six days through the cedar and the rain, and the quiet proof that I'd actually do the hard thing.</p>
+        </figcaption>
+      </figure>
+
+      <figure class="journey reveal">
+        <!-- REPLACE: photo — assets/img/journey/the-work.jpg -->
+        <div class="journey__image"><span class="cover-fallback">A photo goes here</span></div>
+        <figcaption>
+          <div class="journey__date">Ongoing</div>
+          <h3 class="journey__title">The Work</h3>
+          <p class="journey__body">The unglamorous middle — the reps, the pages, the slow compounding. Where most of the real distance is covered.</p>
+        </figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <!-- =================== ITEM DETAIL TEMPLATE =================== -->
+  <!-- ITEM DETAIL PAGE TEMPLATE — becomes item/<slug>.html -->
+  <div class="item-demo">
+    <p class="item-demo__flag">↓ Item detail · one entry's own page (template) ↓</p>
+
+    <article class="item">
+      <div class="item__type">Book</div>
+      <h1 class="item__title">The Shadow of the Torturer</h1>
+      <div class="item__creator">Gene Wolfe · 1980</div>
+
+      <div class="item__meta">
+        <span><b>Read</b> Feb 2026</span>
+        <span><b>Impact</b> ●●●●●</span>
+        <span><b>Via</b> r/printSF</span>
+      </div>
+
+      <div class="item__tags"><span>science-fiction</span><span>memory</span><span>unreliable-narrator</span></div>
+
+      <div class="item-body">
+        <p>Severian remembers everything, and that is exactly why you can trust nothing he tells you. A torturer who cannot forget, narrating his own exile — the premise is a trap, and Wolfe lets you walk into it page by page. I came for the dying-earth strangeness and stayed for the argument the book is quietly having about what memory does to a person.</p>
+
+        <p>What stuck with me wasn't the plot but the texture: a far-future Earth so old it has forgotten it's science fiction, told in a borrowed-Latin vocabulary that makes you feel the centuries. You read it twice — once to follow, once to see what you missed the first time.</p>
+
+        <h3>Why it earned a place</h3>
+        <p>Because it rewards exactly the thing I'm building this whole library around: attention. Nothing here is handed to you. The pleasure is in the re-read, in catching the lie you believed.</p>
+
+        <blockquote>"I never forget anything." — and the whole book is the cost of that sentence.</blockquote>
+
+        <p>Three things I want to remember about it:</p>
+        <ul>
+          <li>An unreliable narrator works best when the unreliability is structural, not a twist.</li>
+          <li>Worldbuilding by vocabulary beats worldbuilding by exposition, every time.</li>
+          <li>A book you have to re-read is a feature, not a flaw — for the way my memory works, the re-read <em>is</em> the encoding.</li>
+        </ul>
+      </div>
+
+      <!-- the handwritten scan: a photo of the notebook page, taped in -->
+      <figure class="scan">
+        <!-- REPLACE: scan image — assets/img/scans/shadow-torturer.jpg -->
+        <div class="scan__img"><span class="scan-note">a photo of the handwritten<br>notebook page goes here</span></div>
+        <figcaption class="scan__caption">
+          <b>From the notebook</b>
+          "Memory as a kind of torture — he can't put anything down. Mirror of the book's own structure: nothing is forgotten, nothing is reliable. Re-read the apprentice chapters."
+        </figcaption>
+      </figure>
+
+      <a class="item__back" href="#library">← back to the library</a>
+    </article>
+  </div>
+
+</main>
+
+<!-- =================== FOOTER =================== -->
+<footer class="site-footer">
+  <div class="site-footer__inner">
+    <div class="site-footer__mark">The Antilibrary</div>
+    <small>kept in the open · since 2026</small>
+  </div>
+</footer>
+
+<script>
+(function(){
+  /* ---- staggered reveal on load + scroll ---- */
+  var revs = Array.prototype.slice.call(document.querySelectorAll('.reveal'));
+  if('IntersectionObserver' in window){
+    var io = new IntersectionObserver(function(entries){
+      entries.forEach(function(e){
+        if(e.isIntersecting){
+          var sibs = Array.prototype.slice.call(e.target.parentNode.children).filter(function(n){return n.classList && n.classList.contains('reveal');});
+          var i = sibs.indexOf(e.target);
+          e.target.style.transitionDelay = Math.min(i,8)*70 + 'ms';
+          e.target.classList.add('in');
+          io.unobserve(e.target);
+        }
+      });
+    },{threshold:.12, rootMargin:'0px 0px -8% 0px'});
+    revs.forEach(function(el){io.observe(el);});
+  } else { revs.forEach(function(el){el.classList.add('in');}); }
+
+  /* ---- library filter chips (by data-media) ---- */
+  var chips = document.querySelectorAll('.filter-chip');
+  var grid  = document.getElementById('library-grid');
+  var cards = grid ? Array.prototype.slice.call(grid.querySelectorAll('.media-card')) : [];
+  var search = document.getElementById('lib-search');
+  var activeFilter = 'all';
+
+  function applyFilter(){
+    var q = (search && search.value || '').trim().toLowerCase();
+    cards.forEach(function(card){
+      var mediaOk = activeFilter === 'all' || card.getAttribute('data-media') === activeFilter;
+      var text = card.textContent.toLowerCase();
+      var textOk = !q || text.indexOf(q) !== -1;
+      card.classList.toggle('hidden', !(mediaOk && textOk));
+    });
+  }
+  chips.forEach(function(chip){
+    chip.addEventListener('click', function(){
+      chips.forEach(function(c){c.classList.remove('is-active');});
+      chip.classList.add('is-active');
+      activeFilter = chip.getAttribute('data-filter');
+      applyFilter();
+    });
+  });
+  if(search){ search.addEventListener('input', applyFilter); }
+
+  /* ---- active nav link on scroll ---- */
+  var sections = ['library','antilibrary','quotes','misogi','journey'];
+  var navlinks = {};
+  document.querySelectorAll('.site-nav__links a').forEach(function(a){
+    navlinks[a.getAttribute('href').slice(1)] = a;
+  });
+  if('IntersectionObserver' in window){
+    var so = new IntersectionObserver(function(entries){
+      entries.forEach(function(e){
+        if(e.isIntersecting){
+          Object.keys(navlinks).forEach(function(k){navlinks[k].classList.remove('is-active');});
+          var id = e.target.getAttribute('id');
+          if(navlinks[id]) navlinks[id].classList.add('is-active');
+        }
+      });
+    },{threshold:.4});
+    sections.forEach(function(id){ var s=document.getElementById(id); if(s) so.observe(s); });
+  }
+})();
+</script>
+</body>
+</html>
