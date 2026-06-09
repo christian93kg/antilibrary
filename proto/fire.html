@@ -167,6 +167,7 @@ const ENTRIES = [
 /* ========== CONFIG ("the cozy knob" — also via ?intensity= / ?embers=) ========== */
 const Q = new URLSearchParams(location.search);
 let INTENSITY = clamp(parseFloat(Q.get("intensity")) || 0.55, 0.2, 1);
+let NOISE = clamp(parseFloat(Q.get("noise")) || 0.08, 0, 0.3);   // film grain / dither
 const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
 const coarse = matchMedia("(pointer: coarse)").matches;
 
@@ -298,6 +299,20 @@ function makeGlow(tup){ const S=24,s=document.createElement("canvas"); s.width=s
   gr.addColorStop(0,rgba(tup,0.9)); gr.addColorStop(.4,rgba(tup,0.30)); gr.addColorStop(1,rgba(tup,0));
   g.fillStyle=gr; g.fillRect(0,0,S,S); return s; }
 const GLOW={ rose:makeGlow(C.rose), warm:makeGlow(C.warm), white:makeGlow(C.white) };
+
+/* film-grain noise tiles — dither the gradients (kills the banding rings) + add texture */
+function makeNoise(size){ const c=document.createElement("canvas"); c.width=c.height=size; const g=c.getContext("2d");
+  const id=g.createImageData(size,size), d=id.data;
+  for(let i=0;i<d.length;i+=4){ const v=Math.random()*255|0; d[i]=d[i+1]=d[i+2]=v; d[i+3]=255; }
+  g.putImageData(id,0,0); return c; }
+const TILES=[makeNoise(256),makeNoise(256),makeNoise(256),makeNoise(256)];
+let noiseIdx=0;
+function drawNoise(){ if(NOISE<=0) return;
+  ctx.save(); ctx.setTransform(1,0,0,1,0,0);              // device pixels → crisp 1:1 grain
+  ctx.globalCompositeOperation="overlay"; ctx.globalAlpha=NOISE;
+  const t=TILES[(noiseIdx++)&3], ox=-(Math.random()*256|0), oy=-(Math.random()*256|0);
+  for(let y=oy;y<cv.height;y+=256) for(let x=ox;x<cv.width;x+=256) ctx.drawImage(t,x,y);
+  ctx.restore(); }
 
 /* THE FLAME = a shimmering point-cloud (the crystalline-particle technique) */
 const BANDS=6, bandCol=[];
@@ -464,7 +479,7 @@ function frame(now){
   // trail fade — leaves a soft ethereal smear instead of a hard clear
   ctx.globalCompositeOperation="source-over";
   ctx.fillStyle="rgba(14,22,17,0.26)"; ctx.fillRect(0,0,W,H);
-  drawFlame(now); drawEmbers(now); drawSnow(now);
+  drawFlame(now); drawEmbers(now); drawSnow(now); drawNoise();
   update(dt, now);
   raf=requestAnimationFrame(frame);
 }
