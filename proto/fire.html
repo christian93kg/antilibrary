@@ -100,6 +100,35 @@ dialog.hearth-panel::backdrop{background:rgba(8,12,9,.62);backdrop-filter:blur(2
 .item-body em.unlit{color:var(--green-2)}
 .reduced-note{position:fixed;left:0;right:0;bottom:max(54px,calc(env(safe-area-inset-bottom) + 30px));
   text-align:center;font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:#6f7e6b;opacity:.5;z-index:2}
+
+/* left "mantel" nav — blends into the dusk */
+.mantel{position:fixed;left:0;top:0;bottom:0;z-index:3;display:flex;flex-direction:column;justify-content:center;gap:17px;
+  padding-left:max(26px,env(safe-area-inset-left));pointer-events:none}
+.mantel a{pointer-events:auto;font-family:var(--mono);font-size:12px;letter-spacing:.24em;text-transform:uppercase;
+  color:#b0a282;opacity:.58;text-decoration:none;width:max-content;padding:3px 0;position:relative;
+  transition:color .3s var(--ease),opacity .3s var(--ease),text-shadow .3s var(--ease)}
+.mantel a::before{content:"";position:absolute;left:-15px;top:50%;width:7px;height:1px;background:var(--gold-2);
+  opacity:0;transform:scaleX(0);transform-origin:left;transition:opacity .3s,transform .3s var(--ease)}
+.mantel a:hover,.mantel a.on{color:#f3ead2;opacity:1;text-shadow:0 0 16px rgba(201,168,96,.55)}
+.mantel a:hover::before,.mantel a.on::before{opacity:.9;transform:scaleX(1)}
+@media (max-width:640px){
+  .mantel{flex-direction:row;justify-content:center;flex-wrap:wrap;gap:8px 16px;top:0;bottom:auto;left:0;right:0;
+    padding:max(52px,calc(env(safe-area-inset-top) + 34px)) 14px 0}
+  .mantel a{font-size:10.5px;letter-spacing:.16em}
+  .mantel a::before{display:none}
+}
+/* section panels (quotes / misogi / photos / about) */
+.sec-head{font-family:var(--serif);font-weight:600;font-size:clamp(28px,5vw,40px);margin:0 0 6px;color:var(--ink)}
+.sec-sub{font-family:var(--read);font-style:italic;color:var(--graphite);margin:0 0 26px;font-size:17px}
+.quote{margin:0 0 26px;padding-left:24px;border-left:2px solid var(--gold)}
+.quote__text{font-family:var(--serif);font-style:italic;font-size:22px;line-height:1.34;color:var(--ink);margin:0 0 8px}
+.quote__author{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--leather)}
+.quote__source{font-family:var(--read);font-style:italic;text-transform:none;letter-spacing:0;color:var(--graphite)}
+.misogi{display:grid;grid-template-columns:84px 1fr;gap:18px;padding:22px 0;border-top:1px solid var(--paper-edge)}
+.misogi__year{font-family:var(--serif);font-size:38px;color:var(--green);line-height:.9}
+.misogi__challenge{font-family:var(--serif);font-weight:600;font-size:21px;margin:0 0 8px}
+.misogi__status{font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--leather);border:1px solid var(--gold);border-radius:99px;padding:3px 9px;display:inline-block;margin-bottom:10px}
+.misogi__notes{font-family:var(--read);color:var(--ink-soft);margin:0;font-size:16px}
 </style>
 </head>
 <body>
@@ -113,6 +142,15 @@ dialog.hearth-panel::backdrop{background:rgba(8,12,9,.62);backdrop-filter:blur(2
 </div>
 
 <div class="ember-tip" id="tip" aria-hidden="true"><b></b><span></span></div>
+
+<!-- the mantel: quiet section nav -->
+<nav class="mantel" aria-label="Sections">
+  <a href="#library" data-sec="library" class="on">Library</a>
+  <a href="#quotes" data-sec="quotes">Quotes</a>
+  <a href="#misogi" data-sec="misogi">Misogi</a>
+  <a href="#photos" data-sec="photos">Photos</a>
+  <a href="#about" data-sec="about">About</a>
+</nav>
 
 <!-- The real, accessible content: every entry as a focusable link (keyboard + screen reader path) -->
 <nav class="ember-list" id="emberList" aria-label="The library — entries"></nav>
@@ -369,6 +407,23 @@ function drawPit(time){
   ctx.globalAlpha=1;
   ctx.globalCompositeOperation="source-over";
 }
+/* BACKGROUND = distant, dim, uncatchable embers — the unread you'll never reach */
+let BG=[];
+function buildBG(){
+  const n=Math.round((coarse?46:84)*(0.5+0.5*INTENSITY));
+  BG=[]; for(let i=0;i<n;i++) BG.push({ x:Math.random(), y:Math.random(), z:0.25+Math.random()*0.75, sway:Math.random()*99, seed:Math.random()*99, warm:Math.random()<0.66 });
+}
+function drawBackground(time){
+  ctx.globalCompositeOperation="lighter";
+  for(let i=0;i<BG.length;i++){ const m=BG[i], z=m.z;
+    const x=m.x*W + Math.sin(time*0.00018*z + m.sway)*34*z;
+    let y=(m.y - time*0.0000075*z)%1; if(y<0) y+=1;
+    const Y=y*H, tw=0.4+0.6*Math.sin(time*0.0019*(0.5+z)+m.seed*5);
+    const a=clamp((0.04+0.16*z)*tw,0,0.34), sz=(0.8+2.0*z)*(0.7+0.3*tw);
+    ctx.globalAlpha=a; ctx.drawImage(m.warm?GLOW.warm:GLOW.rose, x-sz, Y-sz, sz*2, sz*2);
+  }
+  ctx.globalAlpha=1; ctx.globalCompositeOperation="source-over";
+}
 function drawFlame(time){
   let leanX=0; if(ptr.active && ptr.y>baseY-H*0.7) leanX=clamp((ptr.x-cx)*0.05,-18,18);
   ptr.sx += (leanX-ptr.sx)*0.05;
@@ -479,7 +534,7 @@ function frame(now){
   // trail fade — leaves a soft ethereal smear instead of a hard clear
   ctx.globalCompositeOperation="source-over";
   ctx.fillStyle="rgba(14,22,17,0.26)"; ctx.fillRect(0,0,W,H);
-  drawFlame(now); drawEmbers(now); drawSnow(now); drawNoise();
+  drawBackground(now); drawFlame(now); drawEmbers(now); drawSnow(now); drawNoise();
   update(dt, now);
   raf=requestAnimationFrame(frame);
 }
@@ -508,13 +563,29 @@ function drawStaticFrame(){
   ctx.globalCompositeOperation="source-over";
 }
 
-/* ========== GLASS REVIEW PANEL ========== */
+/* ========== GLASS PANEL (reviews + sections) ========== */
+const QUOTES=[
+  {text:"We are what we repeatedly do. Excellence, then, is not an act, but a habit.",author:"Will Durant",source:"summarising Aristotle"},
+  {text:"Read books are far less valuable than unread ones.",author:"Nassim Nicholas Taleb",source:"The Black Swan"},
+  {text:"You could leave life right now. Let that determine what you do and say and think.",author:"Marcus Aurelius",source:"Meditations"},
+  {text:"It is not that we have a short time to live, but that we waste a lot of it.",author:"Seneca",source:"On the Shortness of Life"},
+];
+const MISOGI=[
+  {year:2026,challenge:"Kumano Kodo",status:"Completed",notes:"The first one — a pilgrimage across the Kii Peninsula, refuge to refuge. The wall is mostly in the head."},
+  {year:2027,challenge:"Camino de Santiago · Camino Frances",status:"Planned · Sept 1",notes:"780 km on foot, St-Jean to Santiago. With Kumano done, this earns the dual-pilgrim credential."},
+];
 const panel=document.getElementById("panel"), pbody=document.getElementById("panelBody");
 let lastFocus=null;
+function showPanel(html){
+  pbody.innerHTML=html;
+  lastFocus=document.activeElement;
+  if(typeof panel.showModal==="function"){ if(!panel.open) panel.showModal(); } else panel.setAttribute("open","");
+  const c=pbody.querySelector(".item__close"); if(c) c.addEventListener("click",closePanel);
+}
 function openPanel(entry){
   const consumed=entry.status==="consumed";
-  pbody.innerHTML=`
-    <button class="item__close" aria-label="Close" id="pClose">&times;</button>
+  showPanel(`
+    <button class="item__close" aria-label="Close">&times;</button>
     <div class="item__type">${cap(entry.type)}${consumed?"":" · in the antilibrary"}</div>
     <h2 class="item__title" id="panelTitle">${esc(entry.title)}</h2>
     <div class="item__creator">${esc(entry.creator)}</div>
@@ -524,14 +595,23 @@ function openPanel(entry){
       ${entry.via?`<span><b>Via</b> ${esc(entry.via)}</span>`:""}
     </div>
     <div class="item__tags">${(entry.tags||[]).map(t=>`<span>${esc(t)}</span>`).join("")}</div>
-    <div class="item-body">${entry.reviewHtml||"<p>—</p>"}</div>`;
-  lastFocus=document.activeElement;
-  if(typeof panel.showModal==="function") panel.showModal(); else panel.setAttribute("open","");
-  panel.querySelector("#pClose").addEventListener("click",closePanel);
+    <div class="item-body">${entry.reviewHtml||"<p>—</p>"}</div>`);
 }
-function closePanel(){ if(panel.open){ panel.close?.(); panel.removeAttribute("open"); } if(lastFocus&&lastFocus.focus) lastFocus.focus(); }
+function sectionHtml(sec){
+  const close=`<button class="item__close" aria-label="Close">&times;</button>`;
+  if(sec==="quotes") return close+`<h2 class="sec-head" id="panelTitle">Quotes</h2><p class="sec-sub">The marginalia that outlived the book.</p>`+
+    QUOTES.map(q=>`<figure class="quote"><blockquote class="quote__text">${esc(q.text)}</blockquote><figcaption class="quote__author">${esc(q.author)}${q.source?` &middot; <span class="quote__source">${esc(q.source)}</span>`:""}</figcaption></figure>`).join("");
+  if(sec==="misogi") return close+`<h2 class="sec-head" id="panelTitle">Misogi</h2><p class="sec-sub">One hard thing a year you have a real chance of not finishing.</p>`+
+    MISOGI.map(m=>`<div class="misogi"><div class="misogi__year">${m.year}</div><div><h3 class="misogi__challenge">${esc(m.challenge)}</h3><span class="misogi__status">${esc(m.status)}</span><p class="misogi__notes">${esc(m.notes)}</p></div></div>`).join("");
+  if(sec==="photos") return close+`<h2 class="sec-head" id="panelTitle">Photos</h2><p class="sec-sub">A few from the road. More as I go.</p><div class="item-body"><p>Kumano Kodo, 2026 — the first Misogi. Photos land here once I add them.</p></div>`;
+  return close+`<h2 class="sec-head" id="panelTitle">About</h2><div class="item-body"><p>A shelf of the things that stuck with me — and the far larger pile still waiting to. Each ember is one of them; the fire is the library. The reviews are mostly notes to my future self. Updated when I feel like it.</p></div>`;
+}
+function setActive(sec){ document.querySelectorAll(".mantel a").forEach(a=>a.classList.toggle("on", a.dataset.sec===sec)); }
+function openSection(sec){ if(sec==="library"){ closePanel(); return; } setActive(sec); showPanel(sectionHtml(sec)); }
+function closePanel(){ if(panel.open){ panel.close?.(); panel.removeAttribute("open"); } setActive("library"); if(lastFocus&&lastFocus.focus) lastFocus.focus(); }
 panel.addEventListener("click", e=>{ if(e.target===panel) closePanel(); });   // backdrop click
-panel.addEventListener("cancel", ()=>{ /* Esc → native */ });
+panel.addEventListener("cancel", ()=>{ setActive("library"); });               // Esc → native
+document.querySelectorAll(".mantel a").forEach(a=>{ a.addEventListener("click", e=>{ e.preventDefault(); openSection(a.dataset.sec); }); });
 
 /* ========== ACCESSIBLE ENTRY LIST (keyboard + screen reader) ========== */
 const list=document.getElementById("emberList");
@@ -559,6 +639,7 @@ function debounce(fn,ms){ let t; return (...a)=>{clearTimeout(t);t=setTimeout(()
 resize();
 buildFlame();
 buildPit();
+buildBG();
 if(reduceMotion){
   frozen=true; drawStaticFrame();
   const n=document.createElement("div"); n.className="reduced-note"; n.textContent="reduced-motion · the fire is still"; document.body.appendChild(n);
