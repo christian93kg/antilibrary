@@ -13,7 +13,6 @@
    THE ANTILIBRARY — glass · glow · ether
    A constellation instead of a fire: nebulae drift behind a
    grid of glass cards, one card per kept thing. Zero deps.
-   (The previous homepage, the Hearth, still burns at hearth.html)
    ════════════════════════════════════════════════════════════ */
 
 :root{
@@ -68,8 +67,8 @@ body{
 #motes{ position:fixed; inset:0; z-index:1; pointer-events:none; opacity:var(--ambiance); }
 
 /* cursor aura */
-.aura{ position:fixed; z-index:2; width:520px; height:520px; left:0; top:0; margin:-260px 0 0 -260px; pointer-events:none;
-  background:radial-gradient(circle, var(--accent-soft), transparent 62%); opacity:calc(0.5*var(--ambiance));
+.aura{ position:fixed; z-index:2; width:280px; height:280px; left:0; top:0; margin:-140px 0 0 -140px; pointer-events:none;
+  background:radial-gradient(circle, var(--accent-soft), transparent 62%); opacity:calc(0.35*var(--ambiance));
   transition:opacity .6s; mix-blend-mode:screen; }
 
 /* grain + vignette */
@@ -133,8 +132,7 @@ body{
 
 /* ── toolbar (filters/sort) ─────────────────────────────────── */
 .toolbar{ display:flex; align-items:center; gap:14px; position:sticky; top:78px; z-index:20;
-  padding:18px 0 16px; margin-top:8px; flex-wrap:wrap;
-  background:linear-gradient(rgba(5,6,15,0.92),rgba(5,6,15,0.0)); }
+  padding:18px 0 16px; margin-top:8px; flex-wrap:wrap; }
 .chips{ display:flex; gap:9px; flex-wrap:wrap; }
 .chip{ height:34px; padding:0 15px; display:inline-flex; align-items:center; gap:8px;
   font-size:13px; letter-spacing:.02em; color:var(--ink-dim); cursor:pointer;
@@ -197,9 +195,6 @@ body{
 .tagrow{ display:flex; gap:6px; flex-wrap:wrap; }
 .tag{ font-size:11px; letter-spacing:.03em; color:var(--ink-faint); padding:3px 9px; border-radius:7px;
   background:rgba(255,255,255,0.04); border:1px solid var(--hair); }
-
-/* completed seal */
-.seal{ position:absolute; top:16px; right:16px; width:26px; height:26px; opacity:.9; }
 
 /* empty state */
 .empty{ text-align:center; padding:90px 0; color:var(--ink-faint); }
@@ -347,7 +342,7 @@ body{
       </div>
 
       <footer class="colophon">
-        zero dependencies · set in Cormorant &amp; Jost · <a href="hearth.html">the hearth still burns →</a>
+        zero dependencies · set in Cormorant &amp; Jost
       </footer>
     </div>
   </div>
@@ -376,7 +371,7 @@ body{
 
 <noscript>
   <div style="position:fixed;inset:auto 12px 12px;font:13px/1.4 sans-serif;color:#9aa8cc;background:rgba(8,10,26,.95);padding:10px 14px;border-radius:8px;z-index:999">
-    This page needs JavaScript. The static fallback: <a href="hearth.html" style="color:#7fe3ff">the Hearth</a>.
+    This page needs JavaScript to display the collection.
   </div>
 </noscript>
 
@@ -448,8 +443,7 @@ const ENTRIES = [
 ];
 
 const ABOUT_HTML = `<p>A shelf of the things that stuck with me — and the far larger pile still waiting to. Each card is one of them; the constellation is the library. The reviews are mostly notes to my future self. Updated when I feel like it.</p>
-<p>The name is Taleb's: an <em>antilibrary</em> is the collection of unread books — the ones that keep you curious.</p>
-<p>The previous homepage — a Canvas-2D fire on a winter night — <a href="hearth.html" style="color:var(--accent)">still burns here</a>.</p>`;
+<p>The name is Taleb's: an <em>antilibrary</em> is the collection of unread books — the ones that keep you curious.</p>`;
 
 /* ========== CATEGORIES & ACCENTS ========== */
 const CATEGORIES = [
@@ -577,16 +571,11 @@ function visibleEntries(){
 }
 function cardHtml(e,i){
   const isQuote=e.type==="quote", sk=statusKey(e);
-  const seal = sk==="done" ? `<svg class="seal" viewBox="0 0 24 24" style="color:var(--ec-text)">
-      <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="1" opacity=".5"/>
-      <path d="m7.5 12.2 3 3 6-6.4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
-    </svg>` : "";
   const by = isQuote ? `<p class="by">— <b>${esc(e.creator)}</b></p>`
                      : `<p class="by">by <b>${esc(e.creator)}</b></p>`;
   return `<article class="card ${isQuote?"is-quote":""}" data-slug="${e.slug}"
       style="${accentStyle(e.type)};animation-delay:${Math.min(i,12)*0.045}s" tabindex="0" role="button"
       aria-label="${esc(e.title)}">
-    ${seal}
     <div class="row1">
       <span class="badge">${ICONS[e.type]}${e.type}</span>
       <span class="grow"></span>

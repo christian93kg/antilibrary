@@ -6,8 +6,8 @@ Misogi; and an ongoing photo-journey.
 
 > The homepage is **the Ether**: a space-glass constellation — drifting nebulae,
 > floating motes, one glow card per entry, ⌘K command palette. Vanilla JS, zero
-> dependencies. The previous homepage, **the Hearth** (a Canvas-2D fire on a winter
-> night), still burns at `hearth.html`; `proto/fire.html` is its working lab copy.
-> A markdown-driven static build (`entries.json`) is on the way.
+> dependencies. The retired Hearth (a Canvas-2D fire on a winter night) lives on
+> in git history and `proto/fire.html`. A markdown-driven static build
+> (`entries.json`) is on the way.
 
 Live: https://christian93kg.github.io/antilibrary/
