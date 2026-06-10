@@ -172,6 +172,18 @@ body{
 .card:hover::before{ opacity:1; }
 .card:hover::after{ opacity:.9; }
 
+/* blurred & darkened cover backdrop — only shows once the image loads */
+.cardbg{ position:absolute; inset:0; z-index:0; opacity:0; transition:opacity .8s; pointer-events:none; border-radius:inherit; overflow:hidden; }
+.cardbg.ok{ opacity:1; }
+.cardbg img{ width:100%; height:100%; object-fit:cover; filter:blur(18px) brightness(.38) saturate(1.15); transform:scale(1.2); }
+.cardbg::after{ content:''; position:absolute; inset:0; background:linear-gradient(160deg, rgba(10,13,30,.5), rgba(5,6,15,.78)); }
+.card > *:not(.cardbg){ position:relative; z-index:1; }
+.card::before,.card::after{ z-index:2; }
+
+/* journal-page marker on cards */
+.scan-mark{ display:inline-flex; color:var(--ink-faint); }
+.scan-mark svg{ width:14px; height:14px; }
+
 .card .row1{ display:flex; align-items:center; gap:10px; margin-bottom:14px; }
 .badge{ display:inline-flex; align-items:center; gap:7px; height:26px; padding:0 11px; border-radius:999px;
   font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--ec-text);
@@ -217,8 +229,13 @@ body{
   display:flex; flex-direction:column; }
 .drawer.show{ transform:translateX(0); }
 .drawer .dh{ position:relative; padding:34px 36px 26px; border-bottom:1px solid var(--hair); overflow:hidden; }
-.drawer .dh::before{ content:''; position:absolute; inset:-40% -10% auto -10%; height:180px;
+.drawer .dh::before{ content:''; position:absolute; inset:-40% -10% auto -10%; height:180px; z-index:2;
   background:radial-gradient(60% 100% at 28% 0%, var(--ec-soft, var(--accent-soft)), transparent 70%); pointer-events:none; }
+.dhbg{ position:absolute; inset:0; z-index:0; opacity:0; transition:opacity .8s; pointer-events:none; }
+.dhbg.ok{ opacity:1; }
+.dhbg img{ width:100%; height:100%; object-fit:cover; filter:blur(22px) brightness(.4) saturate(1.15); transform:scale(1.25); }
+.dhbg::after{ content:''; position:absolute; inset:0; background:linear-gradient(165deg, rgba(12,15,34,.45), rgba(8,10,24,.85)); }
+.drawer .dh > *:not(.dhbg){ position:relative; z-index:3; }
 .drawer .dbody{ padding:28px 36px 40px; overflow-y:auto; flex:1; }
 .drawer .dbody::-webkit-scrollbar{ width:8px; }
 .drawer .dbody::-webkit-scrollbar-thumb{ background:var(--accent-line); border-radius:10px; }
@@ -241,6 +258,32 @@ body{
   font-family:'Cormorant Garamond',serif; font-style:italic; font-size:19px; color:var(--ink); }
 .dnote em.unlit{ color:var(--ec-text, var(--accent)); font-style:italic; }
 .dsection-t{ font-size:11.5px; letter-spacing:.26em; text-transform:uppercase; color:var(--ink-faint); margin:30px 0 14px; }
+
+/* read-more expander */
+.more-btn{ display:inline-flex; align-items:center; gap:9px; margin-top:6px; padding:11px 18px; cursor:pointer;
+  font-family:'Jost'; font-size:13px; letter-spacing:.06em; color:var(--ink-dim);
+  background:var(--glass); border:1px solid var(--hair); border-radius:11px; transition:.3s; }
+.more-btn:hover{ color:#fff; border-color:var(--ec-line, var(--hair-bright)); background:var(--ec-soft, var(--glass-2)); }
+.dnote.full{ display:none; }
+.dnote.full.open{ display:block; animation:rise .5s both cubic-bezier(.2,.8,.2,1); }
+
+/* journal-page chip → lightbox */
+.scan-chip{ display:flex; align-items:center; gap:14px; width:100%; padding:12px; cursor:pointer; text-align:left;
+  font-family:'Jost'; font-size:13.5px; color:var(--ink-dim);
+  background:var(--glass); border:1px solid var(--hair); border-radius:13px; transition:.3s; }
+.scan-chip:hover{ color:#fff; border-color:var(--ec-line, var(--hair-bright)); box-shadow:0 0 28px -12px var(--ec-soft, var(--accent-soft)); }
+.scan-chip img{ width:54px; height:70px; object-fit:cover; border-radius:7px; border:1px solid var(--hair-bright);
+  background:rgba(255,255,255,.04); }
+.scan-chip.noimg img{ display:none; }
+.scan-chip .sc-sub{ display:block; font-size:11.5px; letter-spacing:.05em; color:var(--ink-faint); margin-top:3px; }
+.lightbox{ position:fixed; inset:0; z-index:120; display:grid; place-items:center; padding:30px; cursor:zoom-out;
+  background:rgba(3,4,12,0.88); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px);
+  opacity:0; pointer-events:none; transition:opacity .35s; }
+.lightbox.show{ opacity:1; pointer-events:auto; }
+.lightbox img{ max-width:92vw; max-height:92vh; border-radius:8px; border:1px solid var(--hair-bright);
+  box-shadow:0 60px 140px -40px #000, 0 0 90px -30px var(--accent-soft);
+  transform:scale(.96); transition:transform .35s cubic-bezier(.16,1,.3,1); }
+.lightbox.show img{ transform:none; }
 
 /* ── command palette ────────────────────────────────────────── */
 .pal-scrim{ position:fixed; inset:0; z-index:90; background:rgba(3,4,12,0.55); backdrop-filter:blur(10px);
@@ -351,6 +394,8 @@ body{
 <div class="scrim" id="scrim"></div>
 <aside class="drawer" id="drawer" role="dialog" aria-modal="true"></aside>
 
+<div class="lightbox" id="lightbox" aria-label="Journal page scan — click to close"><img id="lightboxImg" alt="Scanned journal page" /></div>
+
 <div class="pal-scrim" id="palScrim">
   <div class="palette" role="dialog" aria-label="Search the antilibrary">
     <div class="pal-in">
@@ -379,10 +424,18 @@ body{
 (function(){
 "use strict";
 
-/* ========== ENTRIES (inline data — same shape as the coming entries.json) ========== */
+/* ========== ENTRIES (inline data — same shape as the coming entries.json) ==========
+   Optional per-entry fields:
+     summary    — 1–2 sentences shown first in the drawer; full reviewHtml sits behind "read the full note"
+     cover      — image path (assets/covers/<slug>.jpg) → blurred/darkened backdrop on card + drawer.
+                  Renders only if the file exists; run tools/fetch_covers.sh to populate.
+     scan       — journal-page image path (assets/scans/<slug>.jpg) → page glyph on the card +
+                  "Journal page" chip in the drawer that opens a fullscreen lightbox.            */
 const ENTRIES = [
   { slug:"shadow-of-the-torturer", title:"The Shadow of the Torturer", creator:"Gene Wolfe",
     type:"book", status:"consumed", impact:5, date:"2026 · 02", via:"r/printSF", sortKey:202602,
+    cover:"assets/covers/shadow-of-the-torturer.jpg",
+    summary:"A torturer who cannot forget, narrating his own exile — the premise is a trap, and you walk into it page by page.",
     tags:["science-fiction","memory","unreliable-narrator"],
     reviewHtml:`<p>Severian remembers everything, and that is exactly why you can trust nothing he tells you. A torturer who cannot forget, narrating his own exile — the premise is a trap, and Wolfe lets you walk into it page by page.</p>
     <p>What stuck wasn't the plot but the texture: a far-future Earth so old it has forgotten it's science fiction, told in a borrowed-Latin vocabulary that makes you feel the centuries.</p>
@@ -390,28 +443,40 @@ const ENTRIES = [
     <p>A book you have to re-read is a feature, not a flaw. For the way my memory works, the re-read <em>is</em> the encoding.</p>` },
   { slug:"meditations", title:"Meditations", creator:"Marcus Aurelius",
     type:"book", status:"consumed", impact:5, date:"2026 · 01", via:"a worn copy", sortKey:202601,
+    cover:"assets/covers/meditations.jpg",
+    summary:"A man arguing himself into composure, night after night, never meaning for anyone to read it.",
     tags:["stoicism","re-read"],
     reviewHtml:`<p>Not a book so much as a man arguing himself into composure, night after night, never meaning for anyone to read it. That's the whole appeal — it's private, so it doesn't perform.</p>
     <blockquote>"You could leave life right now. Let that determine what you do and say and think."</blockquote>
     <p>I keep coming back to it the way you return to a fire — not for new information, for the temperature.</p>` },
   { slug:"the-bear", title:"The Bear", creator:"Christopher Storer",
     type:"film", status:"consumed", impact:4, date:"2026 · 03", via:"a friend", sortKey:202603,
+    cover:"assets/covers/the-bear.jpg",
+    summary:"The violence of caring too much about your work. The kitchen is just the excuse.",
     tags:["craft","pressure"],
     reviewHtml:`<p>A show about the violence of caring too much about your work. The kitchen is just the excuse. Watched the whole thing with my shoulders up by my ears.</p>` },
   { slug:"sandworm", title:"Sandworm", creator:"Andy Greenberg",
     type:"book", status:"consumed", impact:4, date:"2026 · 04", via:"work", sortKey:202604,
+    cover:"assets/covers/sandworm.jpg",
+    summary:"The clearest account of how a line of code becomes a blackout. Reads like a thriller; lands like a warning.",
     tags:["security","cyberwar"],
     reviewHtml:`<p>The clearest account I've read of how a line of code becomes a blackout. Reads like a thriller; lands like a warning. Useful for the day job, but it earns its place for the dread.</p>` },
   { slug:"the-daily-stoic", title:"The Daily Stoic", creator:"Ryan Holiday",
     type:"podcast", status:"consumed", impact:3, date:"daily", via:"the 06:30 ritual", sortKey:202606,
+    cover:"assets/covers/the-daily-stoic.jpg",
+    summary:"Ten minutes while the coffee brews. A reset, not a seminar — the value is the streak.",
     tags:["stoicism","ritual"],
     reviewHtml:`<p>Ten minutes while the coffee brews. Not deep, by design — it's a reset, not a seminar. The value is the streak, not any single episode.</p>` },
   { slug:"discourses", title:"Discourses", creator:"Epictetus",
     type:"book", status:"to-consume", impact:4, date:"queued 2026 · 02", via:"after Meditations", sortKey:202602,
+    cover:"assets/covers/discourses.jpg",
+    summary:"Queued because Meditations kept quoting the man it was learning from. Waiting for the right cold evening.",
     tags:["stoicism"],
     reviewHtml:`<p><em class="unlit">Still in the antilibrary — not yet read.</em></p><p>Queued because Meditations kept quoting the man it was learning from. Waiting for the right cold evening.</p>` },
   { slug:"claw-of-the-conciliator", title:"The Claw of the Conciliator", creator:"Gene Wolfe",
     type:"book", status:"to-consume", impact:5, date:"queued 2026 · 03", via:"finished vol. 1", sortKey:202603,
+    cover:"assets/covers/claw-of-the-conciliator.jpg",
+    summary:"Volume two. I'm rationing it — some books you don't want to be done with.",
     tags:["science-fiction"],
     reviewHtml:`<p><em class="unlit">Still in the antilibrary — not yet read.</em></p><p>Volume two. I'm rationing it. Some books you don't want to be done with.</p>` },
 
@@ -484,6 +549,7 @@ const ICONS = {
   podcast: icon('<rect x="9" y="2.5" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21M8.5 21h7"/>'),
   misogi:  icon('<path d="M3 19h18L15 7l-3 5-2-3z"/><path d="M12.5 9.5 15 7"/><circle cx="17.5" cy="5.5" r="1.6"/>'),
   close:   icon('<path d="M6 6 18 18M18 6 6 18"/>'),
+  page:    icon('<path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4M9 12h6M9 16h6"/>'),
 };
 
 /* ========== HELPERS ========== */
@@ -569,6 +635,10 @@ function visibleEntries(){
   else if(sort==="recent") list=[...list].sort((a,b)=>(b.sortKey||0)-(a.sortKey||0));
   return list;
 }
+function coverLayer(src, cls){
+  return src ? `<div class="${cls}"><img src="${esc(src)}" alt="" loading="lazy"
+    onload="this.parentNode.classList.add('ok')" onerror="this.parentNode.remove()"></div>` : "";
+}
 function cardHtml(e,i){
   const isQuote=e.type==="quote", sk=statusKey(e);
   const by = isQuote ? `<p class="by">— <b>${esc(e.creator)}</b></p>`
@@ -576,9 +646,11 @@ function cardHtml(e,i){
   return `<article class="card ${isQuote?"is-quote":""}" data-slug="${e.slug}"
       style="${accentStyle(e.type)};animation-delay:${Math.min(i,12)*0.045}s" tabindex="0" role="button"
       aria-label="${esc(e.title)}">
+    ${coverLayer(e.cover,"cardbg")}
     <div class="row1">
       <span class="badge">${ICONS[e.type]}${e.type}</span>
       <span class="grow"></span>
+      ${e.scan?`<span class="scan-mark" title="journal page scanned">${ICONS.page}</span>`:""}
       <span class="status-pip pip-${sk}"><i></i>${statusVerb(e)}</span>
     </div>
     <h3>${isQuote?"“"+esc(e.title)+"”":esc(e.title)}</h3>
@@ -627,8 +699,22 @@ function openDrawer(e, fromPalette){
   const isQuote=e.type==="quote";
   drawer.className=`drawer ${isQuote?"is-quote":""}`;
   drawer.style.cssText=accentStyle(e.type);
+  // summary-first: short note up top, full marginalia behind the expander
+  const marginalia = !e.reviewHtml ? "" : e.summary
+    ? `<div class="dsection-t">Marginalia</div>
+       <p class="dnote">${esc(e.summary)}</p>
+       <button class="more-btn" id="moreBtn">Read the full note <span aria-hidden="true">↓</span></button>
+       <div class="dnote full" id="fullNote">${e.reviewHtml}</div>`
+    : `<div class="dsection-t">Marginalia</div><div class="dnote">${e.reviewHtml}</div>`;
+  const scanChip = !e.scan ? "" :
+    `<div class="dsection-t">Journal page</div>
+     <button class="scan-chip" id="scanChip">
+       <img src="${esc(e.scan)}" alt="" onerror="this.closest('button').classList.add('noimg')">
+       <span>Handwritten entry, scanned<span class="sc-sub">tap to view full page</span></span>
+     </button>`;
   drawer.innerHTML=`
     <div class="dh">
+      ${coverLayer(e.cover,"dhbg")}
       <button class="dclose" id="dclose" aria-label="Close">${ICONS.close}</button>
       <span class="badge">${ICONS[e.type]}${e.type}</span>
       <h2>${isQuote?"“"+esc(e.title)+"”":esc(e.title)}</h2>
@@ -636,10 +722,15 @@ function openDrawer(e, fromPalette){
     </div>
     <div class="dbody">
       <div class="kv">${factsFor(e).map(([l,v,cls])=>`<div class="cell"><div class="l">${l}</div><div class="vv ${cls}">${v}</div></div>`).join("")}</div>
-      ${e.reviewHtml?`<div class="dsection-t">Marginalia</div><div class="dnote">${e.reviewHtml}</div>`:""}
+      ${marginalia}
+      ${scanChip}
       ${(e.tags&&e.tags.length)?`<div class="dsection-t">Threads</div><div class="tagrow">${e.tags.map(t=>`<span class="tag">${esc(t)}</span>`).join("")}</div>`:""}
     </div>`;
   $("#dclose").addEventListener("click",closeDrawer);
+  const mb=$("#moreBtn");
+  if(mb) mb.addEventListener("click",()=>{ $("#fullNote").classList.add("open"); mb.remove(); });
+  const sc=$("#scanChip");
+  if(sc) sc.addEventListener("click",()=>openLightbox(e.scan));
   lastFocus=fromPalette?null:document.activeElement;
   drawerOpen=true;
   requestAnimationFrame(()=>{ scrim.classList.add("show"); drawer.classList.add("show"); $("#dclose").focus(); });
@@ -665,6 +756,13 @@ function closeDrawer(){
 }
 scrim.addEventListener("click",closeDrawer);
 $("#aboutLink").addEventListener("click",openAbout);
+
+/* ========== LIGHTBOX (journal-page scans) ========== */
+const lightbox=$("#lightbox"), lightboxImg=$("#lightboxImg");
+let lightboxOpen=false;
+function openLightbox(src){ lightboxImg.src=src; lightboxOpen=true; lightbox.classList.add("show"); }
+function closeLightbox(){ lightboxOpen=false; lightbox.classList.remove("show"); }
+lightbox.addEventListener("click",closeLightbox);
 
 /* ========== COMMAND PALETTE ========== */
 const palScrim=$("#palScrim"), palInput=$("#palInput"), palList=$("#palList"), palCount=$("#palCount");
@@ -733,6 +831,7 @@ $("#cmdTrigger").addEventListener("keydown",e=>{ if(e.key==="Enter") openPal(); 
 
 /* ========== GLOBAL KEYS ========== */
 addEventListener("keydown",e=>{
+  if(e.key==="Escape"&&lightboxOpen){ e.preventDefault(); closeLightbox(); return; }
   if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==="k"){ e.preventDefault(); palOpen?closePal():openPal(); return; }
   if(palOpen){
     if(e.key==="ArrowDown"){ e.preventDefault(); palSel=Math.min(palResults.length-1,palSel+1); markSel(); }

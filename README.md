@@ -10,4 +10,11 @@ Misogi; and an ongoing photo-journey.
 > in git history and `proto/fire.html`. A markdown-driven static build
 > (`entries.json`) is on the way.
 
+Per-entry extras (all optional, all progressive): `summary` shows first in the
+drawer with the full note behind a *read-more*; `cover` (`assets/covers/<slug>.jpg`)
+becomes a blurred-and-darkened backdrop — populate with `bash tools/fetch_covers.sh`
+(iTunes Search API, no key) or drop JPGs in by hand; `scan`
+(`assets/scans/<slug>.jpg`) marks the entry with a page glyph and opens the
+scanned journal page in a lightbox.
+
 Live: https://christian93kg.github.io/antilibrary/
