@@ -4,181 +4,381 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 <title>The Antilibrary</title>
-<meta name="description" content="A personal record of the books, films, articles, and ideas that left a mark — and the pile still waiting to." />
+<meta name="description" content="A personal record of the books, films, podcasts, quotes, and yearly Misogi that left a mark — and the pile still waiting to." />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..700&family=Newsreader:ital,opsz,wght@0,6..72,300..600;1,6..72,300..500&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,500;1,600&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet" />
 <style>
-/* ============================================================
-   THE ANTILIBRARY — THE HEARTH
-   A fire in the snow, on a winter night: dusk-green sky, sparse
-   stars, two ridges of pines, a moonlit snowfield the fire lights.
-   Warm core + cool crystalline glass embers. Each ember = one entry.
-   Canvas-2D, zero dependencies. Tune with ?intensity=0.4 .. 1.0
-   ============================================================ */
+/* ════════════════════════════════════════════════════════════
+   THE ANTILIBRARY — glass · glow · ether
+   A constellation instead of a fire: nebulae drift behind a
+   grid of glass cards, one card per kept thing. Zero deps.
+   (The previous homepage, the Hearth, still burns at hearth.html)
+   ════════════════════════════════════════════════════════════ */
+
 :root{
-  --paper:#efe6d1; --paper-deep:#e7dabb; --paper-edge:#d9c9a3;
-  --ink:#23201a; --ink-soft:#4a4338; --graphite:#756a56;
-  --green:#1b3a2c; --green-2:#2c5740; --green-pale:#5f7d68;
-  --leather:#6c4827; --leather-2:#95683a;
-  --gold:#ad8742; --gold-2:#c9a860; --rose:#7a3b32;
-  --night:#0e1611;          /* the dusk woods behind the fire */
-  --serif:"Fraunces",Georgia,serif;
-  --read:"Newsreader",Georgia,serif;
-  --mono:"IBM Plex Mono",ui-monospace,monospace;
-  --ease:cubic-bezier(.2,.7,.2,1);
+  --bg-0:#05060f;
+  --bg-1:#080a1a;
+  --ink:#eaf2ff;
+  --ink-dim:#9aa8cc;
+  --ink-faint:#6b7aa3;
+  --glass:rgba(140,160,220,0.045);
+  --glass-2:rgba(150,170,230,0.07);
+  --hair:rgba(160,185,255,0.14);
+  --hair-bright:rgba(180,205,255,0.30);
+  --accent:#7fe3ff;
+  --accent-soft:rgba(127,227,255,0.14);
+  --accent-line:rgba(127,227,255,0.55);
+  --ambiance:1;
+  --shadow:0 24px 70px -28px rgba(0,0,0,0.85);
 }
-*{box-sizing:border-box}
-html,body{height:100%}
+
+*{ box-sizing:border-box; }
+html,body{ height:100%; margin:0; }
 body{
-  margin:0;background:#0a120d;color:#e7ddc4;
-  font-family:var(--read);overflow:hidden;
+  font-family:'Jost',sans-serif;
+  background:var(--bg-0);
+  color:var(--ink);
+  overflow:hidden;
   -webkit-font-smoothing:antialiased;
-  /* a rough first-paint of the scene — sky, horizon, snowfield — so there's no flash before the canvas converges */
-  background-image:
-    radial-gradient(60% 26% at 50% 86%, rgba(173,135,66,.13), transparent 70%),
-    linear-gradient(180deg,#070d0a 0%,#0a120d 52%,#16221a 65%,#2c3a40 66%,#1d282d 100%);
+  text-rendering:optimizeLegibility;
 }
-#hearth{position:fixed;top:0;left:0;width:100%;height:100%;z-index:1;display:block;touch-action:none}
-/* night-air vignette — grades the whole scene, costs the canvas nothing */
-.vignette{position:fixed;inset:0;z-index:1;pointer-events:none;
+::selection{ background:var(--accent-soft); color:#fff; }
+
+.serif{ font-family:'Cormorant Garamond',serif; }
+
+/* ── ambient layers ─────────────────────────────────────────── */
+.sky{ position:fixed; inset:0; z-index:0; overflow:hidden; pointer-events:none; }
+.sky::before{
+  content:''; position:absolute; inset:-20%;
   background:
-    linear-gradient(180deg, rgba(7,12,15,.16), transparent 24%),
-    radial-gradient(125% 95% at 50% 58%, transparent 50%, rgba(4,8,6,.52) 100%);}
-
-/* ---- quiet stage UI over the fire ---- */
-.stage{position:fixed;inset:0;z-index:2;pointer-events:none}
-.brand{position:absolute;top:max(18px,env(safe-area-inset-top));left:24px;
-  font-family:var(--serif);font-size:18px;letter-spacing:.01em;color:#e9dfc6;opacity:.86}
-.brand b{color:var(--gold-2);font-weight:600}
-.hint{position:absolute;left:0;right:0;bottom:max(26px,env(safe-area-inset-bottom));
-  text-align:center;font-family:var(--mono);font-size:11.5px;letter-spacing:.16em;
-  text-transform:uppercase;color:#bcae8e;opacity:.7;transition:opacity .8s var(--ease);padding:0 20px}
-.hint.gone{opacity:0}
-
-/* ---- ember tooltip (real DOM, crisp type) ---- */
-.ember-tip{position:fixed;z-index:4;pointer-events:none;transform:translate(-50%,-140%);
-  opacity:0;transition:opacity .2s var(--ease);white-space:nowrap;text-align:center}
-.ember-tip.show{opacity:1}
-.ember-tip b{display:block;font-family:var(--serif);font-weight:600;font-size:17px;color:#f3ead2;
-  text-shadow:0 1px 8px rgba(0,0,0,.7)}
-.ember-tip span{font-family:var(--read);font-style:italic;font-size:13px;color:#cdbf9d;text-shadow:0 1px 6px rgba(0,0,0,.7)}
-
-/* ---- accessible entry list: focusable, reachable by Tab/screen-reader ---- */
-.ember-list{position:fixed;left:-9999px;top:0}
-.ember-list a:focus{position:fixed;left:24px;bottom:64px;z-index:5;
-  font-family:var(--mono);font-size:13px;color:#f3ead2;background:rgba(14,22,17,.9);
-  border:1px solid var(--gold);padding:8px 14px;border-radius:4px;outline:none}
-
-/* =================== GLASS REVIEW PANEL =================== */
-dialog.hearth-panel{
-  border:0;padding:0;max-width:680px;width:calc(100% - 36px);max-height:86vh;
-  background:rgba(239,230,209,.80);color:var(--ink);
-  border-radius:6px;box-shadow:0 40px 90px -30px rgba(0,0,0,.7), 0 0 0 1px rgba(173,135,66,.5);
-  backdrop-filter:blur(16px) saturate(1.08);-webkit-backdrop-filter:blur(16px) saturate(1.08);
-  overflow:auto;opacity:0;transform:translateY(10px) scale(.985);
-  transition:opacity .26s var(--ease),transform .26s var(--ease)}
-dialog.hearth-panel[open]{opacity:1;transform:none}
-dialog.hearth-panel::backdrop{background:rgba(8,12,9,.62);backdrop-filter:blur(2px)}
-@supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){
-  dialog.hearth-panel{background:var(--paper-deep)} /* legible fallback */
+    radial-gradient(60% 50% at 22% 18%, rgba(60,90,200,0.30), transparent 60%),
+    radial-gradient(55% 50% at 82% 26%, rgba(150,90,220,0.22), transparent 60%),
+    radial-gradient(70% 60% at 50% 96%, rgba(40,140,180,0.20), transparent 60%),
+    radial-gradient(90% 90% at 50% 50%, var(--bg-1), var(--bg-0) 78%);
 }
-.panel-top{height:3px;background:linear-gradient(90deg,transparent,var(--gold),transparent)}
-.item{padding:40px clamp(22px,5vw,52px) 44px;position:relative}
-.item__close{position:absolute;top:14px;right:16px;width:34px;height:34px;border-radius:50%;
-  border:1px solid var(--paper-edge);background:rgba(255,255,255,.3);color:var(--leather);
-  font-size:18px;line-height:1;cursor:pointer;display:grid;place-items:center;transition:all .2s}
-.item__close:hover{border-color:var(--gold);color:var(--ink)}
-.item__type{font-family:var(--mono);font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--green-2);margin-bottom:12px}
-.item__title{font-family:var(--serif);font-weight:600;font-size:clamp(28px,5vw,40px);line-height:1.05;margin:0 0 4px}
-.item__creator{font-family:var(--read);font-style:italic;font-size:19px;color:var(--ink-soft);margin-bottom:16px}
-.item__meta{font-family:var(--mono);font-size:11.5px;color:var(--graphite);letter-spacing:.03em;
-  display:flex;flex-wrap:wrap;gap:6px 18px;padding:13px 0;border-top:1px solid var(--paper-edge);border-bottom:1px solid var(--paper-edge)}
-.item__meta b{color:var(--leather);font-weight:500}
-.item__tags{display:flex;flex-wrap:wrap;gap:8px;margin:16px 0 26px}
-.item__tags span{font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;color:var(--leather);
-  background:rgba(149,104,58,.13);border:1px solid rgba(149,104,58,.26);padding:3px 9px;border-radius:3px}
-.item-body{font-family:var(--read);font-size:18px;line-height:1.72;color:var(--ink)}
-.item-body p{margin:0 0 20px}
-.item-body p:first-of-type::first-letter{font-family:var(--serif);font-weight:600;float:left;font-size:58px;line-height:.78;padding:6px 11px 0 0;color:var(--leather)}
-.item-body blockquote{margin:24px 0;padding:6px 0 6px 22px;border-left:2px solid var(--gold);font-family:var(--serif);font-style:italic;font-size:21px;color:var(--ink-soft)}
-.item-body em.unlit{color:var(--green-2)}
-.reduced-note{position:fixed;left:0;right:0;bottom:max(54px,calc(env(safe-area-inset-bottom) + 30px));
-  text-align:center;font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:#6f7e6b;opacity:.5;z-index:2}
+.neb{ position:absolute; border-radius:50%; filter:blur(70px); opacity:calc(0.5*var(--ambiance)); mix-blend-mode:screen; }
+.neb.a{ width:48vmax; height:48vmax; left:-10vmax; top:-12vmax; background:radial-gradient(circle, rgba(90,130,255,0.55), transparent 65%); animation:drift1 38s ease-in-out infinite; }
+.neb.b{ width:42vmax; height:42vmax; right:-12vmax; top:6vmax; background:radial-gradient(circle, rgba(170,110,255,0.5), transparent 65%); animation:drift2 46s ease-in-out infinite; }
+.neb.c{ width:50vmax; height:50vmax; left:24vmax; bottom:-22vmax; background:radial-gradient(circle, rgba(60,200,210,0.4), transparent 65%); animation:drift3 52s ease-in-out infinite; }
+@keyframes drift1{ 50%{ transform:translate(8vmax,6vmax) scale(1.1);} }
+@keyframes drift2{ 50%{ transform:translate(-7vmax,8vmax) scale(1.08);} }
+@keyframes drift3{ 50%{ transform:translate(6vmax,-6vmax) scale(1.12);} }
 
-/* left "mantel" nav — blends into the dusk */
-.mantel{position:fixed;left:0;top:0;bottom:0;z-index:3;display:flex;flex-direction:column;justify-content:center;gap:17px;
-  padding-left:max(26px,env(safe-area-inset-left));pointer-events:none}
-.mantel a{pointer-events:auto;font-family:var(--mono);font-size:12px;letter-spacing:.24em;text-transform:uppercase;
-  color:#b0a282;opacity:.58;text-decoration:none;width:max-content;padding:3px 0;position:relative;
-  transition:color .3s var(--ease),opacity .3s var(--ease),text-shadow .3s var(--ease)}
-.mantel a::before{content:"";position:absolute;left:-15px;top:50%;width:7px;height:1px;background:var(--gold-2);
-  opacity:0;transform:scaleX(0);transform-origin:left;transition:opacity .3s,transform .3s var(--ease)}
-.mantel a:hover,.mantel a.on{color:#f3ead2;opacity:1;text-shadow:0 0 16px rgba(201,168,96,.55)}
-.mantel a:hover::before,.mantel a.on::before{opacity:.9;transform:scaleX(1)}
-@media (max-width:640px){
-  .mantel{flex-direction:row;justify-content:center;flex-wrap:wrap;gap:8px 16px;top:0;bottom:auto;left:0;right:0;
-    padding:max(52px,calc(env(safe-area-inset-top) + 34px)) 14px 0}
-  .mantel a{font-size:10.5px;letter-spacing:.16em}
-  .mantel a::before{display:none}
-}
-/* section panels (quotes / misogi / photos / about) */
-.sec-head{font-family:var(--serif);font-weight:600;font-size:clamp(28px,5vw,40px);margin:0 0 6px;color:var(--ink)}
-.sec-sub{font-family:var(--read);font-style:italic;color:var(--graphite);margin:0 0 26px;font-size:17px}
-.quote{margin:0 0 26px;padding-left:24px;border-left:2px solid var(--gold)}
-.quote__text{font-family:var(--serif);font-style:italic;font-size:22px;line-height:1.34;color:var(--ink);margin:0 0 8px}
-.quote__author{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--leather)}
-.quote__source{font-family:var(--read);font-style:italic;text-transform:none;letter-spacing:0;color:var(--graphite)}
-.misogi{display:grid;grid-template-columns:84px 1fr;gap:18px;padding:22px 0;border-top:1px solid var(--paper-edge)}
-.misogi__year{font-family:var(--serif);font-size:38px;color:var(--green);line-height:.9}
-.misogi__challenge{font-family:var(--serif);font-weight:600;font-size:21px;margin:0 0 8px}
-.misogi__status{font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--leather);border:1px solid var(--gold);border-radius:99px;padding:3px 9px;display:inline-block;margin-bottom:10px}
-.misogi__notes{font-family:var(--read);color:var(--ink-soft);margin:0;font-size:16px}
+#motes{ position:fixed; inset:0; z-index:1; pointer-events:none; opacity:var(--ambiance); }
 
-/* the kindle — UI fades in as the fire catches */
-@media (prefers-reduced-motion: no-preference){
-  .brand{animation:riseIn 1.6s var(--ease) 1.15s backwards}
-  .hint{animation:fadeIn 1.1s var(--ease) 2.3s backwards}
-  .mantel a{animation:fadeIn .9s var(--ease) backwards}
-  .mantel a:nth-child(1){animation-delay:1.7s}
-  .mantel a:nth-child(2){animation-delay:1.85s}
-  .mantel a:nth-child(3){animation-delay:2s}
-  .mantel a:nth-child(4){animation-delay:2.15s}
-  .mantel a:nth-child(5){animation-delay:2.3s}
+/* cursor aura */
+.aura{ position:fixed; z-index:2; width:520px; height:520px; left:0; top:0; margin:-260px 0 0 -260px; pointer-events:none;
+  background:radial-gradient(circle, var(--accent-soft), transparent 62%); opacity:calc(0.5*var(--ambiance));
+  transition:opacity .6s; mix-blend-mode:screen; }
+
+/* grain + vignette */
+.grain{ position:fixed; inset:0; z-index:3; pointer-events:none; opacity:.05; mix-blend-mode:overlay;
+  background-image:url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPScxNDAnIGhlaWdodD0nMTQwJz48ZmlsdGVyIGlkPSduJz48ZmVUdXJidWxlbmNlIHR5cGU9J2ZyYWN0YWxOb2lzZScgYmFzZUZyZXF1ZW5jeT0nMC45JyBudW1PY3RhdmVzPScyJy8+PC9maWx0ZXI+PHJlY3Qgd2lkdGg9JzEwMCUnIGhlaWdodD0nMTAwJScgZmlsdGVyPSd1cmwoI24pJy8+PC9zdmc+"); }
+.vignette{ position:fixed; inset:0; z-index:3; pointer-events:none;
+  background:radial-gradient(120% 110% at 50% 42%, transparent 52%, rgba(0,0,0,0.55) 100%); }
+
+/* ── shell ──────────────────────────────────────────────────── */
+.stage{ position:relative; z-index:5; height:100%; display:flex; flex-direction:column; }
+.scroll{ flex:1; overflow-y:auto; overflow-x:hidden; scroll-behavior:smooth; }
+.scroll::-webkit-scrollbar{ width:10px; }
+.scroll::-webkit-scrollbar-thumb{ background:linear-gradient(var(--accent-line),transparent); border-radius:20px; border:3px solid transparent; background-clip:padding-box; }
+.wrap{ max-width:1320px; margin:0 auto; padding:0 40px; }
+
+/* ── header ─────────────────────────────────────────────────── */
+.topbar{ position:sticky; top:0; z-index:30;
+  backdrop-filter:blur(18px) saturate(1.3); -webkit-backdrop-filter:blur(18px) saturate(1.3);
+  background:linear-gradient(rgba(8,10,26,0.72),rgba(8,10,26,0.30));
+  border-bottom:1px solid var(--hair); }
+.topbar .wrap{ display:flex; align-items:center; gap:24px; height:78px; }
+.brand{ display:flex; align-items:baseline; gap:14px; }
+.brand .mark{ font-size:13px; letter-spacing:.46em; text-transform:uppercase; color:var(--ink-faint); font-weight:300; }
+.brand h1{ font-size:30px; font-weight:600; margin:0; letter-spacing:.01em;
+  background:linear-gradient(180deg,#fff, #b9c8ee 70%); -webkit-background-clip:text; background-clip:text; color:transparent;
+  text-shadow:0 0 34px rgba(150,185,255,0.25); }
+.brand .v{ font-size:12px; color:var(--ink-faint); letter-spacing:.2em; }
+.topbar .spacer{ flex:1; }
+.about-link{ font-size:13px; letter-spacing:.18em; text-transform:uppercase; color:var(--ink-faint);
+  background:none; border:none; font-family:'Jost'; cursor:pointer; padding:8px 4px; transition:color .3s; }
+.about-link:hover{ color:var(--ink); }
+
+/* search trigger */
+.cmd-trigger{ display:flex; align-items:center; gap:12px; height:42px; padding:0 14px 0 16px;
+  background:var(--glass); border:1px solid var(--hair); border-radius:12px; color:var(--ink-dim);
+  cursor:text; min-width:280px; transition:.35s; }
+.cmd-trigger:hover{ border-color:var(--hair-bright); background:var(--glass-2); color:var(--ink); box-shadow:0 0 0 4px var(--accent-soft); }
+.cmd-trigger svg{ width:17px; height:17px; opacity:.8; }
+.cmd-trigger .ph{ flex:1; font-size:14.5px; }
+.kbd{ font-family:'Jost'; font-size:11px; letter-spacing:.08em; color:var(--ink-faint);
+  border:1px solid var(--hair); border-radius:6px; padding:3px 7px; background:rgba(255,255,255,0.03); }
+
+/* ── hero / progress constellation ──────────────────────────── */
+.hero{ padding:54px 0 30px; }
+.hero .eyebrow{ font-size:12.5px; letter-spacing:.4em; text-transform:uppercase; color:var(--accent); opacity:.85; margin-bottom:16px; }
+.hero h2{ font-size:64px; line-height:1.02; font-weight:500; margin:0 0 18px; max-width:14ch; letter-spacing:-0.01em;
+  background:linear-gradient(180deg,#ffffff,#aebbe0 88%); -webkit-background-clip:text; background-clip:text; color:transparent; }
+.hero p{ font-size:17px; line-height:1.6; color:var(--ink-dim); max-width:52ch; margin:0; }
+.hero p .hl{ color:var(--accent); }
+
+.orbits{ display:flex; gap:14px; flex-wrap:wrap; margin-top:34px; }
+.orbit{ position:relative; display:flex; align-items:center; gap:13px; padding:13px 19px 13px 14px;
+  background:var(--glass); border:1px solid var(--hair); border-radius:15px; cursor:pointer;
+  transition:transform .4s cubic-bezier(.2,.8,.2,1), border-color .4s, background .4s, box-shadow .4s; }
+.orbit:hover{ transform:translateY(-3px); border-color:var(--ec-line); background:var(--glass-2); box-shadow:0 0 30px -8px var(--ec-soft); }
+.orbit.on{ border-color:var(--ec-line); box-shadow:0 0 0 1px var(--ec-line), 0 0 34px -10px var(--ec-soft); background:var(--glass-2); }
+.ring{ width:42px; height:42px; flex:none; }
+.orbit .meta{ display:flex; flex-direction:column; line-height:1.2; }
+.orbit .meta .n{ font-size:15px; font-weight:500; color:var(--ink); }
+.orbit .meta .s{ font-size:12px; color:var(--ink-faint); letter-spacing:.02em; }
+
+/* ── toolbar (filters/sort) ─────────────────────────────────── */
+.toolbar{ display:flex; align-items:center; gap:14px; position:sticky; top:78px; z-index:20;
+  padding:18px 0 16px; margin-top:8px; flex-wrap:wrap;
+  background:linear-gradient(rgba(5,6,15,0.92),rgba(5,6,15,0.0)); }
+.chips{ display:flex; gap:9px; flex-wrap:wrap; }
+.chip{ height:34px; padding:0 15px; display:inline-flex; align-items:center; gap:8px;
+  font-size:13px; letter-spacing:.02em; color:var(--ink-dim); cursor:pointer;
+  background:var(--glass); border:1px solid var(--hair); border-radius:999px; transition:.32s; white-space:nowrap; }
+.chip:hover{ color:var(--ink); border-color:var(--hair-bright); }
+.chip.on{ color:#fff; border-color:var(--ec-line); background:var(--ec-soft); box-shadow:0 0 22px -8px var(--ec-soft); }
+.chip .dot{ width:7px; height:7px; border-radius:50%; background:var(--ec, var(--accent)); box-shadow:0 0 8px var(--ec, var(--accent)); }
+.chip .ct{ font-size:11px; color:var(--ink-faint); }
+.chip.on .ct{ color:rgba(255,255,255,0.7); }
+.tb-spacer{ flex:1; }
+.seg{ display:flex; background:var(--glass); border:1px solid var(--hair); border-radius:10px; padding:3px; gap:2px; }
+.seg button{ font-family:'Jost'; font-size:12.5px; color:var(--ink-faint); background:none; border:none; cursor:pointer;
+  padding:6px 13px; border-radius:7px; transition:.28s; letter-spacing:.02em; }
+.seg button:hover{ color:var(--ink); }
+.seg button.on{ color:#fff; background:var(--accent-soft); box-shadow:inset 0 0 0 1px var(--accent-line); }
+.seg button .n{ opacity:.55; font-size:11px; }
+
+/* ── card grid ──────────────────────────────────────────────── */
+.grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:20px; padding:6px 0 40px; }
+
+.card{ position:relative; border-radius:18px; padding:22px 22px 20px; cursor:pointer; overflow:hidden;
+  background:linear-gradient(160deg, rgba(255,255,255,0.055), rgba(255,255,255,0.012));
+  border:1px solid var(--hair);
+  box-shadow:var(--shadow);
+  transform-style:preserve-3d; transition:border-color .45s, box-shadow .45s;
+  animation:rise .7s both cubic-bezier(.2,.8,.2,1); }
+@keyframes rise{ from{ opacity:0; transform:translateY(22px) scale(.985);} }
+.card::before{ /* edge glow */
+  content:''; position:absolute; inset:0; border-radius:inherit; padding:1px; pointer-events:none; opacity:0; transition:opacity .45s;
+  background:linear-gradient(150deg, var(--ec-line), transparent 45%);
+  -webkit-mask:linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite:xor; mask-composite:exclude; }
+.card::after{ /* cursor sheen */
+  content:''; position:absolute; width:340px; height:340px; left:var(--mx,50%); top:var(--my,0%);
+  transform:translate(-50%,-50%); pointer-events:none; opacity:0; transition:opacity .4s;
+  background:radial-gradient(circle, var(--ec-soft), transparent 60%); }
+.card:hover{ border-color:var(--ec-line); box-shadow:var(--shadow), 0 0 46px -16px var(--ec-soft); }
+.card:hover::before{ opacity:1; }
+.card:hover::after{ opacity:.9; }
+
+.card .row1{ display:flex; align-items:center; gap:10px; margin-bottom:14px; }
+.badge{ display:inline-flex; align-items:center; gap:7px; height:26px; padding:0 11px; border-radius:999px;
+  font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--ec-text);
+  background:var(--ec-soft); border:1px solid var(--ec-line); }
+.badge svg{ width:13px; height:13px; }
+.card .grow{ flex:1; }
+.status-pip{ display:inline-flex; align-items:center; gap:7px; font-size:11.5px; letter-spacing:.05em; color:var(--ink-faint); }
+.status-pip i{ width:8px; height:8px; border-radius:50%; display:inline-block; }
+.pip-queue i{ background:transparent; border:1.5px solid var(--ink-faint); }
+.pip-active i{ background:var(--accent); box-shadow:0 0 9px var(--accent); animation:pulse 2.4s infinite; }
+.pip-done i{ background:#9affc0; box-shadow:0 0 9px #9affc0; }
+@keyframes pulse{ 50%{ opacity:.4; } }
+
+.card h3{ font-family:'Cormorant Garamond',serif; font-weight:600; font-size:25px; line-height:1.12; margin:0 0 8px;
+  letter-spacing:.005em; color:#f3f7ff; }
+.card.is-quote h3{ font-size:23px; font-style:italic; font-weight:500; line-height:1.25; }
+.card .by{ font-size:13.5px; color:var(--ink-dim); margin:0 0 16px; }
+.card .by b{ color:var(--ec-text); font-weight:500; }
+
+.card .foot{ display:flex; align-items:center; gap:10px; margin-top:auto; }
+.tagrow{ display:flex; gap:6px; flex-wrap:wrap; }
+.tag{ font-size:11px; letter-spacing:.03em; color:var(--ink-faint); padding:3px 9px; border-radius:7px;
+  background:rgba(255,255,255,0.04); border:1px solid var(--hair); }
+
+/* completed seal */
+.seal{ position:absolute; top:16px; right:16px; width:26px; height:26px; opacity:.9; }
+
+/* empty state */
+.empty{ text-align:center; padding:90px 0; color:var(--ink-faint); }
+.empty .serif{ font-size:30px; color:var(--ink-dim); margin-bottom:8px; }
+
+/* colophon */
+.colophon{ padding:10px 0 56px; font-size:12px; letter-spacing:.06em; color:var(--ink-faint); text-align:center; }
+.colophon a{ color:var(--ink-dim); text-decoration:none; border-bottom:1px solid var(--hair); transition:color .3s, border-color .3s; }
+.colophon a:hover{ color:var(--accent); border-color:var(--accent-line); }
+
+/* ── detail drawer ──────────────────────────────────────────── */
+.scrim{ position:fixed; inset:0; z-index:60; background:rgba(3,4,12,0.6); backdrop-filter:blur(6px);
+  opacity:0; pointer-events:none; transition:opacity .5s; }
+.scrim.show{ opacity:1; pointer-events:auto; }
+.drawer{ position:fixed; top:0; right:0; height:100%; width:min(560px,94vw); z-index:70;
+  transform:translateX(104%); transition:transform .62s cubic-bezier(.16,1,.3,1);
+  background:linear-gradient(150deg, rgba(20,24,48,0.86), rgba(10,12,28,0.92));
+  backdrop-filter:blur(26px) saturate(1.3); -webkit-backdrop-filter:blur(26px) saturate(1.3);
+  border-left:1px solid var(--ec-line, var(--hair-bright)); box-shadow:-40px 0 120px -40px #000, inset 1px 0 0 var(--hair-bright);
+  display:flex; flex-direction:column; }
+.drawer.show{ transform:translateX(0); }
+.drawer .dh{ position:relative; padding:34px 36px 26px; border-bottom:1px solid var(--hair); overflow:hidden; }
+.drawer .dh::before{ content:''; position:absolute; inset:-40% -10% auto -10%; height:180px;
+  background:radial-gradient(60% 100% at 28% 0%, var(--ec-soft, var(--accent-soft)), transparent 70%); pointer-events:none; }
+.drawer .dbody{ padding:28px 36px 40px; overflow-y:auto; flex:1; }
+.drawer .dbody::-webkit-scrollbar{ width:8px; }
+.drawer .dbody::-webkit-scrollbar-thumb{ background:var(--accent-line); border-radius:10px; }
+.dclose{ position:absolute; top:24px; right:26px; width:38px; height:38px; border-radius:11px; cursor:pointer;
+  display:grid; place-items:center; color:var(--ink-dim); background:var(--glass); border:1px solid var(--hair); transition:.3s; }
+.dclose:hover{ color:#fff; border-color:var(--hair-bright); transform:rotate(90deg); }
+.dclose svg{ width:18px; height:18px; }
+.drawer h2{ font-family:'Cormorant Garamond',serif; font-size:40px; line-height:1.08; font-weight:600; margin:18px 0 6px; color:#fff; max-width:18ch; }
+.drawer.is-quote h2{ font-style:italic; font-weight:500; font-size:34px; }
+.drawer .dby{ font-size:15px; color:var(--ink-dim); }
+.drawer .dby b{ color:var(--ec-text); }
+.kv{ display:flex; gap:10px; flex-wrap:wrap; margin:22px 0 26px; }
+.kv .cell{ flex:1; min-width:120px; padding:14px 16px; border-radius:13px; background:var(--glass); border:1px solid var(--hair); }
+.kv .cell .l{ font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--ink-faint); margin-bottom:5px; }
+.kv .cell .vv{ font-size:18px; color:var(--ink); font-family:'Cormorant Garamond',serif; font-weight:600; }
+.kv .cell .vv.impact{ letter-spacing:.18em; color:var(--ec-text, var(--ink)); font-size:15px; }
+.dnote{ font-size:15.5px; line-height:1.72; color:#cdd8f4; font-weight:300; }
+.dnote p{ margin:0 0 16px; }
+.dnote blockquote{ margin:20px 0; padding:4px 0 4px 20px; border-left:2px solid var(--ec-line, var(--accent-line));
+  font-family:'Cormorant Garamond',serif; font-style:italic; font-size:19px; color:var(--ink); }
+.dnote em.unlit{ color:var(--ec-text, var(--accent)); font-style:italic; }
+.dsection-t{ font-size:11.5px; letter-spacing:.26em; text-transform:uppercase; color:var(--ink-faint); margin:30px 0 14px; }
+
+/* ── command palette ────────────────────────────────────────── */
+.pal-scrim{ position:fixed; inset:0; z-index:90; background:rgba(3,4,12,0.55); backdrop-filter:blur(10px);
+  opacity:0; pointer-events:none; transition:opacity .35s; display:flex; align-items:flex-start; justify-content:center; }
+.pal-scrim.show{ opacity:1; pointer-events:auto; }
+.palette{ margin-top:13vh; width:min(680px,92vw); border-radius:20px; overflow:hidden;
+  background:linear-gradient(160deg, rgba(22,26,54,0.92), rgba(10,12,30,0.96));
+  border:1px solid var(--hair-bright); box-shadow:0 50px 130px -30px #000, 0 0 0 1px rgba(255,255,255,0.04), 0 0 80px -30px var(--accent-soft);
+  transform:translateY(-14px) scale(.97); opacity:0; transition:transform .4s cubic-bezier(.16,1,.3,1), opacity .4s; }
+.pal-scrim.show .palette{ transform:none; opacity:1; }
+.pal-in{ display:flex; align-items:center; gap:14px; padding:20px 24px; border-bottom:1px solid var(--hair); }
+.pal-in svg{ width:21px; height:21px; color:var(--accent); }
+.pal-in input{ flex:1; background:none; border:none; outline:none; color:#fff; font-family:'Jost'; font-size:19px; letter-spacing:.01em; }
+.pal-in input::placeholder{ color:var(--ink-faint); }
+.pal-list{ max-height:48vh; overflow-y:auto; padding:8px; }
+.pal-list::-webkit-scrollbar{ width:8px; }
+.pal-list::-webkit-scrollbar-thumb{ background:var(--accent-line); border-radius:10px; }
+.pal-group{ font-size:11px; letter-spacing:.22em; text-transform:uppercase; color:var(--ink-faint); padding:14px 16px 7px; }
+.pal-item{ display:flex; align-items:center; gap:14px; padding:12px 16px; border-radius:12px; cursor:pointer; transition:background .18s; }
+.pal-item .pi-ic{ width:34px; height:34px; flex:none; border-radius:9px; display:grid; place-items:center; color:var(--ec-text);
+  background:var(--ec-soft); border:1px solid var(--ec-line); }
+.pal-item .pi-ic svg{ width:16px; height:16px; }
+.pal-item .pi-main{ flex:1; min-width:0; }
+.pal-item .pi-t{ font-size:15px; color:var(--ink); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.pal-item .pi-t em{ color:var(--accent); font-style:normal; font-weight:600; }
+.pal-item .pi-s{ font-size:12.5px; color:var(--ink-faint); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.pal-item.sel{ background:var(--accent-soft); box-shadow:inset 0 0 0 1px var(--accent-line); }
+.pal-foot{ display:flex; gap:18px; align-items:center; padding:12px 22px; border-top:1px solid var(--hair); color:var(--ink-faint); font-size:12px; }
+.pal-foot .k{ color:var(--ink-dim); }
+.pal-empty{ padding:40px; text-align:center; color:var(--ink-faint); font-family:'Cormorant Garamond',serif; font-size:22px; }
+
+@media (max-width:720px){
+  .wrap{ padding:0 20px; }
+  .hero h2{ font-size:42px; }
+  .topbar .wrap{ height:64px; gap:14px; }
+  .brand h1{ font-size:24px; }
+  .brand .mark{ display:none; }
+  .cmd-trigger{ min-width:0; }
+  .cmd-trigger .ph{ display:none; }
+  .toolbar{ top:64px; }
 }
-@keyframes riseIn{from{opacity:0;transform:translateY(7px)}}
-@keyframes fadeIn{from{opacity:0}}
+@media (prefers-reduced-motion:reduce){
+  *{ animation-duration:.001s !important; }
+  .neb{ animation:none; }
+}
 </style>
 </head>
 <body>
 
-<canvas id="hearth" aria-hidden="true"></canvas>
+<!-- ambient ether -->
+<div class="sky" aria-hidden="true">
+  <div class="neb a"></div>
+  <div class="neb b"></div>
+  <div class="neb c"></div>
+</div>
+<canvas id="motes" aria-hidden="true"></canvas>
+<div class="aura" id="aura" aria-hidden="true"></div>
+<div class="grain" aria-hidden="true"></div>
 <div class="vignette" aria-hidden="true"></div>
 
-<div class="stage" aria-hidden="true">
-  <div class="brand">The <b>Antilibrary</b></div>
-  <div class="hint" id="hint">each ember is something that lit me up — hover, then click to read</div>
+<div class="stage">
+  <header class="topbar">
+    <div class="wrap">
+      <div class="brand">
+        <span class="mark">The</span>
+        <h1 class="serif">Antilibrary</h1>
+        <span class="v">· iii</span>
+      </div>
+      <span class="spacer"></span>
+      <button class="about-link" id="aboutLink">About</button>
+      <div class="cmd-trigger" id="cmdTrigger" role="button" tabindex="0" aria-label="Search the collection">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.2-3.2"/></svg>
+        <span class="ph">Search the collection</span>
+        <span class="kbd">⌘K</span>
+      </div>
+    </div>
+  </header>
+
+  <div class="scroll" id="scroll">
+    <div class="wrap">
+      <section class="hero">
+        <div class="eyebrow">A private constellation of things worth keeping</div>
+        <h2 class="serif">Everything I mean to read, watch, hear &amp; dare.</h2>
+        <p id="heroLine"></p>
+        <div class="orbits" id="orbits"></div>
+      </section>
+
+      <div class="toolbar">
+        <div class="chips" id="chips"></div>
+        <span class="tb-spacer"></span>
+        <div class="seg" id="statusSeg"></div>
+        <div class="seg" id="sortSeg"></div>
+      </div>
+
+      <div class="grid" id="grid"></div>
+      <div class="empty" id="emptyState" hidden>
+        <div class="serif">This shelf is empty.</div>
+        <div>Nothing here matches that filter — yet.</div>
+      </div>
+
+      <footer class="colophon">
+        zero dependencies · set in Cormorant &amp; Jost · <a href="hearth.html">the hearth still burns →</a>
+      </footer>
+    </div>
+  </div>
 </div>
 
-<div class="ember-tip" id="tip" aria-hidden="true"><b></b><span></span></div>
+<div class="scrim" id="scrim"></div>
+<aside class="drawer" id="drawer" role="dialog" aria-modal="true"></aside>
 
-<!-- the mantel: quiet section nav -->
-<nav class="mantel" aria-label="Sections">
-  <a href="#library" data-sec="library" class="on">Library</a>
-  <a href="#quotes" data-sec="quotes">Quotes</a>
-  <a href="#misogi" data-sec="misogi">Misogi</a>
-  <a href="#photos" data-sec="photos">Photos</a>
-  <a href="#about" data-sec="about">About</a>
-</nav>
+<div class="pal-scrim" id="palScrim">
+  <div class="palette" role="dialog" aria-label="Search the antilibrary">
+    <div class="pal-in">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.2-3.2"/></svg>
+      <input id="palInput" placeholder="Search titles, creators, threads…" autocomplete="off" />
+      <span class="kbd">ESC</span>
+    </div>
+    <div class="pal-list" id="palList"></div>
+    <div class="pal-foot">
+      <span><span class="k">↑↓</span> navigate</span>
+      <span><span class="k">↵</span> open</span>
+      <span><span class="k">esc</span> dismiss</span>
+      <span style="flex:1"></span>
+      <span id="palCount"></span>
+    </div>
+  </div>
+</div>
 
-<!-- The real, accessible content: every entry as a focusable link (keyboard + screen reader path) -->
-<nav class="ember-list" id="emberList" aria-label="The library — entries"></nav>
-
-<!-- The glass review panel -->
-<dialog class="hearth-panel" id="panel" aria-labelledby="panelTitle">
-  <div class="panel-top"></div>
-  <article class="item" id="panelBody"></article>
-</dialog>
+<noscript>
+  <div style="position:fixed;inset:auto 12px 12px;font:13px/1.4 sans-serif;color:#9aa8cc;background:rgba(8,10,26,.95);padding:10px 14px;border-radius:8px;z-index:999">
+    This page needs JavaScript. The static fallback: <a href="hearth.html" style="color:#7fe3ff">the Hearth</a>.
+  </div>
+</noscript>
 
 <script>
 (function(){
@@ -187,731 +387,410 @@ dialog.hearth-panel::backdrop{background:rgba(8,12,9,.62);backdrop-filter:blur(2
 /* ========== ENTRIES (inline data — same shape as the coming entries.json) ========== */
 const ENTRIES = [
   { slug:"shadow-of-the-torturer", title:"The Shadow of the Torturer", creator:"Gene Wolfe",
-    type:"book", status:"consumed", impact:5, date:"2026 · 02", via:"r/printSF",
+    type:"book", status:"consumed", impact:5, date:"2026 · 02", via:"r/printSF", sortKey:202602,
     tags:["science-fiction","memory","unreliable-narrator"],
     reviewHtml:`<p>Severian remembers everything, and that is exactly why you can trust nothing he tells you. A torturer who cannot forget, narrating his own exile — the premise is a trap, and Wolfe lets you walk into it page by page.</p>
     <p>What stuck wasn't the plot but the texture: a far-future Earth so old it has forgotten it's science fiction, told in a borrowed-Latin vocabulary that makes you feel the centuries.</p>
     <blockquote>"I never forget anything." — and the whole book is the cost of that sentence.</blockquote>
     <p>A book you have to re-read is a feature, not a flaw. For the way my memory works, the re-read <em>is</em> the encoding.</p>` },
   { slug:"meditations", title:"Meditations", creator:"Marcus Aurelius",
-    type:"book", status:"consumed", impact:5, date:"2026 · 01", via:"a worn copy",
+    type:"book", status:"consumed", impact:5, date:"2026 · 01", via:"a worn copy", sortKey:202601,
     tags:["stoicism","re-read"],
     reviewHtml:`<p>Not a book so much as a man arguing himself into composure, night after night, never meaning for anyone to read it. That's the whole appeal — it's private, so it doesn't perform.</p>
     <blockquote>"You could leave life right now. Let that determine what you do and say and think."</blockquote>
     <p>I keep coming back to it the way you return to a fire — not for new information, for the temperature.</p>` },
   { slug:"the-bear", title:"The Bear", creator:"Christopher Storer",
-    type:"film", status:"consumed", impact:4, date:"2026 · 03", via:"a friend",
+    type:"film", status:"consumed", impact:4, date:"2026 · 03", via:"a friend", sortKey:202603,
     tags:["craft","pressure"],
     reviewHtml:`<p>A show about the violence of caring too much about your work. The kitchen is just the excuse. Watched the whole thing with my shoulders up by my ears.</p>` },
   { slug:"sandworm", title:"Sandworm", creator:"Andy Greenberg",
-    type:"book", status:"consumed", impact:4, date:"2026 · 04", via:"work",
+    type:"book", status:"consumed", impact:4, date:"2026 · 04", via:"work", sortKey:202604,
     tags:["security","cyberwar"],
     reviewHtml:`<p>The clearest account I've read of how a line of code becomes a blackout. Reads like a thriller; lands like a warning. Useful for the day job, but it earns its place for the dread.</p>` },
   { slug:"the-daily-stoic", title:"The Daily Stoic", creator:"Ryan Holiday",
-    type:"podcast", status:"consumed", impact:3, date:"daily", via:"the 06:30 ritual",
+    type:"podcast", status:"consumed", impact:3, date:"daily", via:"the 06:30 ritual", sortKey:202606,
     tags:["stoicism","ritual"],
     reviewHtml:`<p>Ten minutes while the coffee brews. Not deep, by design — it's a reset, not a seminar. The value is the streak, not any single episode.</p>` },
   { slug:"discourses", title:"Discourses", creator:"Epictetus",
-    type:"book", status:"to-consume", impact:4, date:"queued 2026 · 02", via:"after Meditations",
+    type:"book", status:"to-consume", impact:4, date:"queued 2026 · 02", via:"after Meditations", sortKey:202602,
     tags:["stoicism"],
     reviewHtml:`<p><em class="unlit">Still in the antilibrary — not yet read.</em></p><p>Queued because Meditations kept quoting the man it was learning from. Waiting for the right cold evening.</p>` },
   { slug:"claw-of-the-conciliator", title:"The Claw of the Conciliator", creator:"Gene Wolfe",
-    type:"book", status:"to-consume", impact:5, date:"queued 2026 · 03", via:"finished vol. 1",
+    type:"book", status:"to-consume", impact:5, date:"queued 2026 · 03", via:"finished vol. 1", sortKey:202603,
     tags:["science-fiction"],
     reviewHtml:`<p><em class="unlit">Still in the antilibrary — not yet read.</em></p><p>Volume two. I'm rationing it. Some books you don't want to be done with.</p>` },
+
+  /* ── quotes — the marginalia that outlived the book ── */
+  { slug:"quote-durant", title:"We are what we repeatedly do. Excellence, then, is not an act, but a habit.",
+    creator:"Will Durant", source:"summarising Aristotle",
+    type:"quote", status:"kept", sortKey:192600, tags:["habit","excellence"],
+    reviewHtml:`<p>Usually pinned on Aristotle; actually Durant's compression of him. The compression is the better sentence.</p>` },
+  { slug:"quote-taleb", title:"Read books are far less valuable than unread ones.",
+    creator:"Nassim Nicholas Taleb", source:"The Black Swan",
+    type:"quote", status:"kept", sortKey:200700, tags:["antilibrary","humility"],
+    reviewHtml:`<p>The sentence this whole site is named after. The unread pile isn't a debt — it's the visible edge of what you don't know yet.</p>` },
+  { slug:"quote-aurelius", title:"You could leave life right now. Let that determine what you do and say and think.",
+    creator:"Marcus Aurelius", source:"Meditations",
+    type:"quote", status:"kept", sortKey:17000, tags:["stoicism","mortality"],
+    reviewHtml:`<p>The line that keeps earning its keep. Memento mori as an operating instruction, not a mood.</p>` },
+  { slug:"quote-seneca", title:"It is not that we have a short time to live, but that we waste a lot of it.",
+    creator:"Seneca", source:"On the Shortness of Life",
+    type:"quote", status:"kept", sortKey:6000, tags:["stoicism","time"],
+    reviewHtml:`<p>The other half of the Aurelius line. Time isn't short; attention is leaky.</p>` },
+
+  /* ── misogi — one hard thing a year you might not finish ── */
+  { slug:"misogi-2026", title:"Kumano Kodo", creator:"2026 Misogi",
+    type:"misogi", status:"consumed", date:"2026", sortKey:202600, tags:["pilgrimage","japan"],
+    reviewHtml:`<p>The first one — a pilgrimage across the Kii Peninsula, refuge to refuge. The wall is mostly in the head.</p>` },
+  { slug:"misogi-2027", title:"Camino de Santiago · Camino Francés", creator:"2027 Misogi",
+    type:"misogi", status:"to-consume", date:"planned · Sept 1, 2027", sortKey:202709, tags:["pilgrimage","spain"],
+    reviewHtml:`<p><em class="unlit">Not yet walked.</em></p><p>780 km on foot, St-Jean to Santiago. With Kumano done, this earns the dual-pilgrim credential.</p>` },
 ];
 
-/* ========== CONFIG ("the cozy knob" — also via ?intensity= / ?embers=) ========== */
-const Q = new URLSearchParams(location.search);
-let INTENSITY = clamp(parseFloat(Q.get("intensity")) || 0.55, 0.2, 1);
-let NOISE = clamp(parseFloat(Q.get("noise")) || 0.08, 0, 0.3);   // film grain / dither
-const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
-const coarse = matchMedia("(pointer: coarse)").matches;
+const ABOUT_HTML = `<p>A shelf of the things that stuck with me — and the far larger pile still waiting to. Each card is one of them; the constellation is the library. The reviews are mostly notes to my future self. Updated when I feel like it.</p>
+<p>The name is Taleb's: an <em>antilibrary</em> is the collection of unread books — the ones that keep you curious.</p>
+<p>The previous homepage — a Canvas-2D fire on a winter night — <a href="hearth.html" style="color:var(--accent)">still burns here</a>.</p>`;
 
-const cv = document.getElementById("hearth");
-const ctx = cv.getContext("2d", { alpha:true });
-let W=0,H=0,DPR=1, cx=0, baseY=0;
-
-function resize(){
-  DPR = Math.min(window.devicePixelRatio || 1, 2);
-  W = window.innerWidth; H = window.innerHeight;
-  cv.style.width = W+"px"; cv.style.height = H+"px";
-  cv.width = Math.round(W*DPR); cv.height = Math.round(H*DPR);
-  ctx.setTransform(DPR,0,0,DPR,0,0);
-  cx = W*0.5;
-  baseY = H - Math.max(70, H*0.14);
-  horizonY = Math.round(H*(H>W*1.2?0.62:0.66));   // portrait gets a deeper snowfield
-  buildStars(); buildScene(); buildGlints(); buildSnowfall();
-}
-window.addEventListener("resize", debounce(()=>{ resize(); if(frozen) drawStaticFrame(); }, 150));
-
-/* ========== POINTER ========== */
-const ptr = { x: -1, y: -1, sx: 0, sy: 0, active:false };
-function setPtr(x,y){ ptr.x=x; ptr.y=y; ptr.active=true; }
-cv.addEventListener("pointermove", e=>{ setPtr(e.clientX, e.clientY); hover(e.clientX,e.clientY); dismissHint(); }, {passive:true});
-cv.addEventListener("pointerleave", ()=>{ ptr.active=false; clearHover(); });
-cv.addEventListener("pointerdown", e=>{ setPtr(e.clientX,e.clientY); const hit=pick(e.clientX,e.clientY); if(hit) openPanel(hit.entry); }, {passive:true});
-
-/* ========== PALETTE (rgb tuples) ========== */
-const C = {
-  emberCore:[214,240,232], emberRim:[201,168,96], teal:[120,182,168],
-  warm:[173,135,66], rose:[122,59,50], white:[255,247,228], leather:[149,104,58],
-  night:[14,22,17],
+/* ========== CATEGORIES & ACCENTS ========== */
+const CATEGORIES = [
+  { key:"book",    label:"Books",    accent:"cyan",   doneVerb:"read"     },
+  { key:"film",    label:"Films",    accent:"rose",   doneVerb:"watched"  },
+  { key:"podcast", label:"Podcasts", accent:"teal",   doneVerb:"running"  },
+  { key:"quote",   label:"Quotes",   accent:"violet", doneVerb:"kept"     },
+  { key:"misogi",  label:"Misogi",   accent:"gold",   doneVerb:"completed"},
+];
+const ACCENTS = {
+  cyan:   { glow:"#7fe3ff", soft:"rgba(127,227,255,0.14)", line:"rgba(127,227,255,0.55)", text:"#bfeeff" },
+  violet: { glow:"#b69cff", soft:"rgba(182,156,255,0.14)", line:"rgba(182,156,255,0.55)", text:"#dccfff" },
+  teal:   { glow:"#67f0d0", soft:"rgba(103,240,208,0.13)", line:"rgba(103,240,208,0.5)",  text:"#c3fff0" },
+  gold:   { glow:"#ffd98a", soft:"rgba(255,217,138,0.14)", line:"rgba(255,217,138,0.55)", text:"#ffeec4" },
+  rose:   { glow:"#ff9ec4", soft:"rgba(255,158,196,0.14)", line:"rgba(255,158,196,0.5)",  text:"#ffd4e6" },
 };
-const rgba=(t,a)=>`rgba(${t[0]},${t[1]},${t[2]},${a})`;
+const CAT = Object.fromEntries(CATEGORIES.map(c=>[c.key,c]));
 
-/* ========== EMBER SPRITES (pre-rendered, crystalline) ========== */
-function makeSprite(consumed){
-  const S=160, s=document.createElement("canvas"); s.width=s.height=S;  // hi-res → crisp on retina
-  const g=s.getContext("2d"); const c=S/2;
-  const core = consumed ? C.emberCore : C.teal;
-
-  // soft cool halo
-  const glow=g.createRadialGradient(c,c,0,c,c,c);
-  glow.addColorStop(0, rgba(core, consumed?0.42:0.22));
-  glow.addColorStop(.22, rgba(core, consumed?0.18:0.10));
-  glow.addColorStop(.55, rgba(C.teal, consumed?0.07:0.04));
-  glow.addColorStop(1, rgba(core,0));
-  g.fillStyle=glow; g.fillRect(0,0,S,S);
-
-  g.translate(c,c);
-  g.globalCompositeOperation="lighter";
-
-  // bright tight core
-  const rC = consumed?16:11;
-  const cr=g.createRadialGradient(0,0,0,0,0,rC);
-  cr.addColorStop(0, rgba(C.white, consumed?0.95:0.45));
-  cr.addColorStop(.45, rgba(core, consumed?0.55:0.28));
-  cr.addColorStop(1, rgba(core,0));
-  g.fillStyle=cr; g.beginPath(); g.arc(0,0,rC,0,7); g.fill();
-
-  // soft sparkle rays — fade at the tips, no hard edges (the FF gleam)
-  const spindle=(L,w)=>{ g.beginPath(); g.moveTo(0,-L); g.lineTo(w,0); g.lineTo(0,L); g.lineTo(-w,0); g.closePath(); g.fill(); };
-  if(consumed){
-    const len=c*0.92;
-    const sg=g.createRadialGradient(0,0,0,0,0,len);
-    sg.addColorStop(0, rgba(C.white,.80)); sg.addColorStop(.35, rgba(core,.35)); sg.addColorStop(1, rgba(core,0));
-    g.fillStyle=sg;
-    spindle(len,3);
-    g.save(); g.rotate(Math.PI/2); spindle(len,3); g.restore();
-    g.save(); g.rotate(Math.PI/4); spindle(len*0.55,2.2); g.restore();
-    g.save(); g.rotate(-Math.PI/4); spindle(len*0.55,2.2); g.restore();
-  } else {
-    // unlit (to-consume): a single faint, quiet glint
-    const sg=g.createRadialGradient(0,0,0,0,0,c*0.5);
-    sg.addColorStop(0, rgba(C.teal,.28)); sg.addColorStop(1, rgba(C.teal,0));
-    g.fillStyle=sg; spindle(c*0.45,2);
-  }
-  return s;
+/* status normalisation: consumed→done · to-consume→queue · kept→done (quotes live as kept) */
+function statusKey(e){
+  if(e.status==="consumed"||e.status==="kept") return "done";
+  if(e.status==="in-progress") return "active";
+  return "queue";
 }
-const SPR = { consumed: makeSprite(true), unlit: makeSprite(false) };
-
-/* ========== EMBERS (object pool, bound to entries) ========== */
-function maxEmbers(){ return Math.round((coarse?14:24) * (0.5+0.5*INTENSITY)); }
-class Ember{ constructor(){ this.reset(); }
-  reset(){ this.alive=false; this.x=0;this.y=0;this.vx=0;this.vy=0;this.age=0;this.life=1;
-    this.size=1;this.rot=0;this.rotV=0;this.seed=Math.random()*99;this.entry=null;this.hot=0;this.pinned=false;this.base=0.6; }
-}
-const pool = Array.from({length: 28}, ()=>new Ember());
-let bag=[]; // shuffle bag of entry indices, impact-weighted
-function refillBag(){ bag=[]; ENTRIES.forEach((e,i)=>{ const n=1+Math.round((e.impact||3)/2); for(let k=0;k<n;k++) bag.push(i); }); for(let i=bag.length-1;i>0;i--){const j=(Math.random()*(i+1))|0;[bag[i],bag[j]]=[bag[j],bag[i]];} }
-refillBag();
-function spawn(){
-  if(!bag.length) refillBag();
-  const e = pool.find(p=>!p.alive); if(!e) return;
-  const entry = ENTRIES[bag.pop()];
-  const consumed = entry.status==="consumed";
-  e.reset(); e.alive=true; e.entry=entry;
-  e.x = cx + (Math.random()-0.5)*46;
-  e.y = baseY - 30 - Math.random()*30;
-  e.vx = (Math.random()-0.5)*0.18;
-  e.vy = -(0.34 + Math.random()*0.30) * (0.8 + (entry.impact||3)/10);
-  e.life = 6500 + Math.random()*5000;
-  e.size = (consumed?0.85:0.72) + (entry.impact||3)/10 + Math.random()*0.2;
-  e.rot = Math.random()*Math.PI; e.rotV = (Math.random()-0.5)*0.0009;
-  e.base = consumed ? 0.85 : 0.5;
+function statusVerb(e){
+  const k=statusKey(e);
+  if(e.type==="quote") return "Kept";
+  if(e.type==="misogi") return k==="done"?"Done":"Planned";
+  return k==="done"?"Done":k==="active"?"In progress":"Queue";
 }
 
-/* ========== HIT TESTING ========== */
-let hovered=null;
-function emberScreen(e){ return {x:e.x, y:e.y}; }
-function pick(x,y){
-  let best=null,bd=1e9; const R= coarse?38:30;
-  for(const e of pool){ if(!e.alive) continue;
-    const d=Math.hypot(e.x-x, e.y-y); if(d<R && d<bd){bd=d;best=e;} }
-  return best;
-}
-const tip=document.getElementById("tip"), tipB=tip.querySelector("b"), tipS=tip.querySelector("span");
-function hover(x,y){ const e=pick(x,y);
-  if(e!==hovered){ if(hovered) hovered.pinned=false; hovered=e; if(e) e.pinned=true; }
-  if(e){ tipB.textContent=e.entry.title; tipS.textContent=e.entry.creator;
-    tip.style.left=e.x+"px"; tip.style.top=e.y+"px"; tip.classList.add("show"); cv.style.cursor="pointer"; }
-  else clearHover();
-}
-function clearHover(){ if(hovered){hovered.pinned=false;hovered=null;} tip.classList.remove("show"); cv.style.cursor="default"; }
-
-/* ========== DRAW: glow bed + flame + bloom ========== */
-let t0=performance.now();
-/* glow-dot sprites (soft body + sparkle glints) */
-function makeGlow(tup){ const S=24,s=document.createElement("canvas"); s.width=s.height=S; const g=s.getContext("2d"); const c=S/2;
-  const gr=g.createRadialGradient(c,c,0,c,c,c);
-  gr.addColorStop(0,rgba(tup,0.9)); gr.addColorStop(.4,rgba(tup,0.30)); gr.addColorStop(1,rgba(tup,0));
-  g.fillStyle=gr; g.fillRect(0,0,S,S); return s; }
-const GLOW={ rose:makeGlow(C.rose), warm:makeGlow(C.warm), white:makeGlow(C.white) };
-
-/* film-grain noise tiles — dither the gradients (kills the banding rings) + add texture */
-function makeNoise(size){ const c=document.createElement("canvas"); c.width=c.height=size; const g=c.getContext("2d");
-  const id=g.createImageData(size,size), d=id.data;
-  for(let i=0;i<d.length;i+=4){ const v=Math.random()*255|0; d[i]=d[i+1]=d[i+2]=v; d[i+3]=255; }
-  g.putImageData(id,0,0); return c; }
-const TILES=[makeNoise(256),makeNoise(256),makeNoise(256),makeNoise(256)];
-let noiseIdx=0;
-function drawNoise(){ if(NOISE<=0) return;
-  ctx.save(); ctx.setTransform(1,0,0,1,0,0);              // device pixels → crisp 1:1 grain
-  ctx.globalCompositeOperation="overlay"; ctx.globalAlpha=NOISE;
-  const t=TILES[(noiseIdx++)&3], ox=-(Math.random()*256|0), oy=-(Math.random()*256|0);
-  for(let y=oy;y<cv.height;y+=256) for(let x=ox;x<cv.width;x+=256) ctx.drawImage(t,x,y);
-  ctx.restore(); }
-
-/* ============================================================
-   WINTER NIGHT — the place around the fire.
-   Everything still (sky, star bases, pines, snowfield, the hearth
-   clearing) is baked once per resize into SCENE; the frame loop
-   fades *toward* SCENE instead of toward flat night, so the trail
-   smears keep working over a real background. The fire itself sits
-   on the baked near-black clearing — its tuning is untouched.
-   ============================================================ */
-let SCENE=null, horizonY=0;
-function mulberry32(a){ return function(){ a|=0; a=a+0x6D2B79F5|0; let t=Math.imul(a^a>>>15,1|a); t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; }; }
-
-/* stars — stored as fractions with a fixed seed, so every resize keeps the same sky */
-let STARS=[];
-function buildStars(){
-  const rng=mulberry32(20271107), n=coarse?58:95;
-  STARS=[];
-  for(let i=0;i<n;i++) STARS.push({ x:rng(), y:Math.pow(rng(),1.25), s:rng()<0.22?1.6:1,
-    ph:rng()*6.28, sp:0.00035+rng()*0.0011, gold:rng()<0.05 });
-}
-function drawStars(time){
-  ctx.globalCompositeOperation="lighter";
-  for(const st of STARS){
-    const tw=0.5+0.5*Math.sin(time*st.sp+st.ph);
-    ctx.globalAlpha=0.03+0.20*tw*tw;
-    ctx.fillStyle=st.gold?"rgb(201,168,96)":"rgb(188,206,216)";
-    ctx.fillRect(st.x*W, st.y*horizonY*0.95, st.s, st.s);
-  }
-  ctx.globalAlpha=1; ctx.globalCompositeOperation="source-over";
-}
-
-/* ground glints — a few live sparkles in the snow; warm ones near the fire */
-let GLINTS=[];
-function buildGlints(){
-  const rng=mulberry32(7771), n=coarse?16:26, warmR=Math.min(W*0.42,360);
-  GLINTS=[];
-  for(let i=0;i<n;i++){
-    const xf=rng(), yf=Math.pow(rng(),0.72);
-    GLINTS.push({ xf, yf, ph:rng()*6.28, sp:0.0007+rng()*0.0017, s:0.9+rng()*0.9,
-      warm:Math.hypot(xf*W-cx, horizonY+yf*(H-horizonY)-baseY)<warmR });
-  }
-}
-function drawGlints(time){
-  ctx.globalCompositeOperation="lighter";
-  for(const gl of GLINTS){
-    const tw=Math.max(0,Math.sin(time*gl.sp+gl.ph));
-    ctx.globalAlpha=0.03+0.30*tw*tw*tw;
-    ctx.fillStyle=gl.warm?"rgb(222,186,120)":"rgb(206,226,236)";
-    ctx.fillRect(gl.xf*W, horizonY+gl.yf*(H-horizonY), gl.s, gl.s);
-  }
-  ctx.globalAlpha=1; ctx.globalCompositeOperation="source-over";
-}
-
-/* the fire's pool of light on the snow — pre-rendered ellipse, flickers with the coals */
-function makePoolSprite(){
-  const s=document.createElement("canvas"); s.width=512; s.height=192;
-  const g=s.getContext("2d");
-  g.translate(256,96); g.scale(1,0.375);
-  const gr=g.createRadialGradient(0,0,0,0,0,254);
-  gr.addColorStop(0,rgba(C.warm,0.34)); gr.addColorStop(0.35,rgba(C.warm,0.16));
-  gr.addColorStop(0.7,rgba(C.rose,0.06)); gr.addColorStop(1,rgba(C.warm,0));
-  g.fillStyle=gr; g.beginPath(); g.arc(0,0,254,0,7); g.fill();
-  return s;
-}
-const LIGHTPOOL=makePoolSprite();
-function drawLightPool(time){
-  const flick=0.82+0.13*Math.sin(time*0.0014)+0.05*Math.sin(time*0.0047);
-  const rw=Math.min(W*0.52,430)*(0.75+0.45*INTENSITY);
-  ctx.globalCompositeOperation="lighter";
-  ctx.globalAlpha=clamp(0.55*flick*kCoal,0,1);
-  ctx.drawImage(LIGHTPOOL, cx-rw, baseY+4-rw*0.375, rw*2, rw*0.75);
-  ctx.globalAlpha=1; ctx.globalCompositeOperation="source-over";
-}
-
-/* one ridge of procedural pines — 3 stacked tiers per tree, one fill per layer */
-function paintTreeLayer(g, baseLine, hMax, color, count, rng){
-  g.fillStyle=color;
-  g.beginPath();
-  const sp=W/(count-1);
-  for(let i=0;i<count;i++){
-    const x=i*sp + (rng()-0.5)*sp*0.9;
-    const h=hMax*(0.5+0.5*rng());
-    const w=sp*(0.5+0.4*rng());
-    const skew=(rng()-0.5)*w*0.2;
-    for(let t=0;t<3;t++){
-      const ty=baseLine - h*0.30*t, th=h*(0.52-0.05*t), tw=w*(1-0.27*t);
-      g.moveTo(x-tw,ty); g.lineTo(x+skew*(t+1)/3, ty-th); g.lineTo(x+tw,ty);
-    }
-  }
-  g.rect(-2, baseLine-1, W+4, Math.max(4,hMax*0.10));   // low ridge joining the trunks
-  g.fill();
-}
-
-function buildScene(){
-  if(!SCENE) SCENE=document.createElement("canvas");
-  SCENE.width=cv.width; SCENE.height=cv.height;
-  const g=SCENE.getContext("2d");
-  g.setTransform(DPR,0,0,DPR,0,0);
-
-  /* sky — deep dusk-green, a remnant of warmth surviving at the horizon */
-  const sky=g.createLinearGradient(0,0,0,horizonY);
-  sky.addColorStop(0,"#070d0a"); sky.addColorStop(0.55,"#0a120d");
-  sky.addColorStop(0.85,"#0f1911"); sky.addColorStop(1,"#16221a");
-  g.fillStyle=sky; g.fillRect(0,0,W,horizonY+2);
-  const dusk=g.createRadialGradient(cx,horizonY,0,cx,horizonY,Math.max(W*0.6,320));
-  dusk.addColorStop(0,"rgba(173,135,66,0.085)"); dusk.addColorStop(0.55,"rgba(122,59,50,0.04)"); dusk.addColorStop(1,"rgba(0,0,0,0)");
-  g.fillStyle=dusk; g.fillRect(0,0,W,horizonY+2);
-
-  /* baked star bases (the live pass twinkles over these exact spots) */
-  g.globalAlpha=0.10;
-  for(const st of STARS){
-    g.fillStyle=st.gold?"rgb(201,168,96)":"rgb(188,206,216)";
-    g.fillRect(st.x*W, st.y*horizonY*0.95, st.s, st.s);
-  }
-  g.globalAlpha=1;
-
-  /* snowfield — moonlit, but dark in absolute terms so the additive fire stays safe */
-  const gr=g.createLinearGradient(0,horizonY,0,H);
-  gr.addColorStop(0,"rgb(47,61,67)"); gr.addColorStop(0.34,"rgb(39,52,57)"); gr.addColorStop(1,"rgb(28,39,44)");
-  g.fillStyle=gr; g.fillRect(0,horizonY,W,H-horizonY);
-
-  /* soft drift undulations + baked glint dust */
-  const rng=mulberry32(4242);
-  for(let i=0;i<7;i++){
-    const dy=horizonY+(0.12+0.8*rng())*(H-horizonY), dw=W*(0.2+0.5*rng()), dh=8+34*rng();
-    g.save(); g.translate(rng()*W, dy); g.scale(1,dh/dw);
-    const dg=g.createRadialGradient(0,0,0,0,0,dw);
-    dg.addColorStop(0, rng()<0.5?"rgba(214,228,234,0.05)":"rgba(8,14,16,0.10)"); dg.addColorStop(1,"rgba(0,0,0,0)");
-    g.fillStyle=dg; g.beginPath(); g.arc(0,0,dw,0,7); g.fill(); g.restore();
-  }
-  g.fillStyle="rgb(212,230,238)";
-  for(let i=0;i<(coarse?70:140);i++){
-    const yf=Math.pow(rng(),0.7);
-    g.globalAlpha=0.025+0.085*rng()*(0.4+0.6*yf);
-    g.fillRect(rng()*W, horizonY+yf*(H-horizonY), 1, 1);
-  }
-  g.globalAlpha=1;
-
-  /* treelines — two parallax ridges of pines along the horizon */
-  const nearH=clamp(W*0.14,30,96);
-  paintTreeLayer(g, horizonY+1,        nearH*0.55, "rgb(9,14,11)",  Math.ceil(W/46)+2, mulberry32(1311));
-  paintTreeLayer(g, horizonY+H*0.015,  nearH,      "rgb(12,18,14)", Math.ceil(W/70)+2, mulberry32(8088));
-
-  /* the hearth clearing — near-black under the fire, so the flame, pit and
-     embers render over exactly what they were tuned against */
-  g.save(); g.translate(cx,baseY); g.scale(1,0.55);
-  const rx=Math.min(W*0.36,360);
-  const cg=g.createRadialGradient(0,0,0,0,0,rx);
-  cg.addColorStop(0,"rgba(15,21,16,1)"); cg.addColorStop(0.45,"rgba(15,21,16,0.95)");
-  cg.addColorStop(0.78,"rgba(15,21,16,0.5)"); cg.addColorStop(1,"rgba(15,21,16,0)");
-  g.fillStyle=cg; g.beginPath(); g.arc(0,0,rx,0,7); g.fill(); g.restore();
-
-  /* bake a dither pass so the new gradients don't band */
-  g.setTransform(1,0,0,1,0,0);
-  g.globalCompositeOperation="overlay"; g.globalAlpha=0.05;
-  for(let y=0;y<SCENE.height;y+=256) for(let x=0;x<SCENE.width;x+=256) g.drawImage(TILES[((x>>8)+(y>>8))&3],x,y);
-  g.globalAlpha=1; g.globalCompositeOperation="source-over";
-}
-
-/* THE FLAME = a shimmering point-cloud (the crystalline-particle technique) */
-const BANDS=6, bandCol=[];
-function computeBands(){ const stops=[[150,52,40],[196,96,40],[210,140,55],[226,176,96],[240,216,162],[255,247,228]];
-  bandCol.length=0; for(let b=0;b<BANDS;b++) bandCol.push(stops[Math.min(stops.length-1, Math.round(b/(BANDS-1)*(stops.length-1)))]); }
-let FPbands=[], FPspark=[];
-function buildFlame(){ computeBands();
-  const n=Math.round((coarse?720:1300)*(0.45+0.55*INTENSITY));
-  FPbands=Array.from({length:BANDS},()=>[]); FPspark=[];
-  for(let i=0;i<n;i++){
-    const h=Math.pow(Math.random(),1.5);                            // denser at the base
-    const side=((Math.random()+Math.random()+Math.random())/3)*2-1; // center-biased fill
-    const p={h, side, seed:Math.random()*99};
-    if(Math.random()<0.06) FPspark.push(p); else FPbands[Math.min(BANDS-1,Math.floor(h*BANDS))].push(p);
-  }
-}
-function halfW(h,W0){ return W0*Math.pow(1-h,0.62)*(0.5+0.5*Math.sin(h*Math.PI*0.92)); } // teardrop
-
-/* THE PIT = a shimmering bed of coals (point-cloud, hotter at the centre) */
-let COALS=[];
-function buildPit(){
-  const n=Math.round((coarse?90:150)*(0.5+0.5*INTENSITY));
-  COALS=[];
-  for(let i=0;i<n;i++){
-    const rad=Math.pow(Math.random(),1.5);            // centre-dense
-    const ang=Math.random()*Math.PI*2;
-    COALS.push({ u:Math.cos(ang)*rad, v:Math.sin(ang)*rad, r:rad, seed:Math.random()*99,
-                 size:0.6+Math.random()*1.5, heat:Math.random() });
-  }
-}
-function drawPit(time){
-  const pulse=0.85+0.15*Math.sin(time*0.0014);
-  const Wp=Math.min(W*0.42, 150+90*INTENSITY), Hp=Wp*0.32;
-  ctx.globalCompositeOperation="lighter";
-  // soft warm ground-glow the coals sit in
-  ctx.save(); ctx.translate(cx,baseY); ctx.scale(1,0.42);
-  const ug=ctx.createRadialGradient(0,0,0,0,0,Wp*1.2);
-  ug.addColorStop(0, rgba(C.warm,(0.20*INTENSITY+0.12)*pulse*kCoal));
-  ug.addColorStop(.5, rgba(C.leather,0.10));
-  ug.addColorStop(1, rgba(C.leather,0));
-  ctx.fillStyle=ug; ctx.beginPath(); ctx.arc(0,0,Wp*1.2,0,7); ctx.fill();
-  ctx.restore();
-  // individual glowing coals — rose at the rim, white-hot at the centre
-  for(let i=0;i<COALS.length;i++){ const cz=COALS[i];
-    const x=cx+cz.u*Wp + (Math.random()-0.5)*1.2;
-    const y=baseY+cz.v*Hp + (Math.random()-0.5)*1.2;
-    const tw=0.55+0.45*Math.sin(time*0.003*(0.6+cz.heat)+cz.seed*6);
-    const hot=(1-cz.r)*0.7 + cz.heat*0.3;
-    const a=clamp((0.16+0.5*hot)*tw*(0.6+0.6*INTENSITY),0,0.85)*kCoal;
-    const sz=(1.4+cz.size*2.0)*(0.8+0.5*hot);
-    const spr=hot>0.7?GLOW.white:(hot>0.42?GLOW.warm:GLOW.rose);
-    ctx.globalAlpha=a; ctx.drawImage(spr, x-sz, y-sz, sz*2, sz*2);
-  }
-  ctx.globalAlpha=1;
-  ctx.globalCompositeOperation="source-over";
-}
-/* BACKGROUND = distant, dim, uncatchable embers — the unread you'll never reach */
-let BG=[];
-function buildBG(){
-  const n=Math.round((coarse?46:84)*(0.5+0.5*INTENSITY));
-  BG=[]; for(let i=0;i<n;i++) BG.push({ x:Math.random(), y:Math.random(), z:0.25+Math.random()*0.75, sway:Math.random()*99, seed:Math.random()*99, warm:Math.random()<0.66 });
-}
-function drawBackground(time){
-  ctx.globalCompositeOperation="lighter";
-  for(let i=0;i<BG.length;i++){ const m=BG[i], z=m.z;
-    const x=m.x*W + Math.sin(time*0.00018*z + m.sway)*34*z;
-    let y=(m.y - time*0.0000075*z)%1; if(y<0) y+=1;
-    const Y=y*H, tw=0.4+0.6*Math.sin(time*0.0019*(0.5+z)+m.seed*5);
-    let a=clamp((0.04+0.16*z)*tw,0,0.34); if(Y>horizonY) a*=0.35;   // dimmer once "in" the snowfield
-    const sz=(0.8+2.0*z)*(0.7+0.3*tw);
-    ctx.globalAlpha=a; ctx.drawImage(m.warm?GLOW.warm:GLOW.rose, x-sz, Y-sz, sz*2, sz*2);
-  }
-  ctx.globalAlpha=1; ctx.globalCompositeOperation="source-over";
-}
-function drawFlame(time){
-  let leanX=0; if(ptr.active && ptr.y>baseY-H*0.7) leanX=clamp((ptr.x-cx)*0.05,-18,18);
-  ptr.sx += (leanX-ptr.sx)*0.05;
-  const breathe=0.94+0.06*Math.sin(time*0.0016);
-  const flameH=Math.min(H*0.46, 150+150*INTENSITY)*breathe*(0.35+0.65*kFlame);
-  const W0=62*(0.85+0.3*INTENSITY);
-  const amp=8+9*INTENSITY;
-
-  // glowing coal pit at the base
-  drawPit(time);
-  if(kFlame<=0.004) return;   // still kindling — only the coals so far
-
-  ctx.globalCompositeOperation="lighter";
-  // soft warm underglow so the cloud reads as one flame, not confetti
-  ctx.save(); ctx.translate(cx,baseY-flameH*0.4); ctx.scale(0.55,1);
-  const bg=ctx.createRadialGradient(0,0,0,0,0,flameH*0.7);
-  bg.addColorStop(0,rgba(C.warm,(0.10*INTENSITY+0.05)*kFlame)); bg.addColorStop(1,rgba(C.warm,0));
-  ctx.fillStyle=bg; ctx.beginPath(); ctx.arc(0,0,flameH*0.7,0,7); ctx.fill(); ctx.restore();
-
-  // shimmering points — one fillStyle per colour band (fast)
-  for(let b=0;b<BANDS;b++){ const c=bandCol[b];
-    const a=(0.14+0.12*INTENSITY)*(0.6+0.4*Math.sin(time*0.004+b))*kFlame;
-    ctx.fillStyle=`rgba(${c[0]},${c[1]},${c[2]},${a.toFixed(3)})`;
-    const arr=FPbands[b];
-    for(let k=0;k<arr.length;k++){ const p=arr[k], h=p.h;
-      const hw=halfW(h,W0);
-      const sway=Math.sin(time*0.0022+h*4+p.seed*0.3)*amp*h + Math.sin(time*0.0012+p.seed)*amp*0.4*h;
-      const x=cx+ptr.sx*h+sway+p.side*hw + (Math.random()-0.5)*1.8;
-      const y=baseY-h*flameH + (Math.random()-0.5)*1.8;
-      ctx.fillRect(x-1,y-1,2.2,2.2);
-    }
-  }
-  // sparkle glints
-  for(let k=0;k<FPspark.length;k++){ const p=FPspark[k], h=p.h;
-    const hw=halfW(h,W0);
-    const sway=Math.sin(time*0.0022+h*4+p.seed*0.3)*amp*h;
-    const x=cx+ptr.sx*h+sway+p.side*hw, y=baseY-h*flameH;
-    const tw=0.5+0.5*Math.sin(time*0.006+p.seed*5);
-    const sz=2.2+2.6*tw, spr=h>0.72?GLOW.white:GLOW.warm;
-    ctx.globalAlpha=clamp((0.25+0.5*tw)*kFlame,0,1); ctx.drawImage(spr,x-sz,y-sz,sz*2,sz*2);
-  }
-  ctx.globalAlpha=1;
-  ctx.globalCompositeOperation="source-over";
-}
-
-/* SNOWFALL — three depth layers; the near flakes catch the fire's light */
-let SNOW=[];
-const SNOW_COOL=["rgba(196,212,220,0.10)","rgba(204,219,226,0.17)","rgba(216,228,233,0.30)"];
-const SNOW_WARM="rgba(236,206,156,0.34)";
-function buildSnowfall(){
-  const n=Math.round((coarse?78:124)*(0.6+0.4*INTENSITY));
-  SNOW=[];
-  for(let i=0;i<n;i++){
-    const r=Math.random(), layer=r<0.45?0:(r<0.8?1:2);   // 0 far · 1 mid · 2 near
-    SNOW.push({ x:Math.random(), y:Math.random(), layer,
-      sp:(0.7+Math.random()*0.6)*[0.000020,0.000042,0.000085][layer],
-      ph:Math.random()*6.28, sw:[7,11,17][layer]*(0.6+Math.random()*0.8),
-      s:[0.8,1.3,1.9][layer]*(0.8+Math.random()*0.5) });
-  }
-}
-function drawSnow(time,layer){
-  ctx.globalCompositeOperation="source-over";
-  if(layer<2) ctx.fillStyle=SNOW_COOL[layer];
-  const warmR=Math.min(W*0.45,380);
-  for(const f of SNOW){
-    if(f.layer!==layer) continue;
-    const Y=((f.y+time*f.sp)%1)*H;
-    let X=f.x*W + Math.sin(time*0.00042+f.ph)*f.sw;
-    if(X<-4) X+=W+8; else if(X>W+4) X-=W+8;
-    if(layer===2){
-      ctx.fillStyle = Math.hypot(X-cx,Y-baseY)<warmR ? SNOW_WARM : SNOW_COOL[2];
-      ctx.beginPath(); ctx.arc(X,Y,f.s,0,7); ctx.fill();
-    } else {
-      ctx.fillRect(X,Y,f.s+0.6,f.s+0.6);
-    }
-  }
-}
-
-/* SMOKE — a few translucent wisps curling off the flame tip */
-function makeSmokePuff(){ const S=64,s=document.createElement("canvas"); s.width=s.height=S; const g=s.getContext("2d");
-  const gr=g.createRadialGradient(32,32,0,32,32,32);
-  gr.addColorStop(0,"rgba(148,146,134,0.45)"); gr.addColorStop(0.6,"rgba(132,132,122,0.16)"); gr.addColorStop(1,"rgba(132,132,122,0)");
-  g.fillStyle=gr; g.fillRect(0,0,S,S); return s; }
-const PUFF=makeSmokePuff();
-let SMOKE=[], smokeAcc=0;
-function drawSmoke(time){
-  if(!SMOKE.length) return;
-  ctx.globalCompositeOperation="source-over";
-  for(const w of SMOKE){
-    const t=Math.min(w.age/w.life,1);
-    const x=w.x + Math.sin(w.age*0.00055+w.seed)*34*t + ptr.sx*(0.4+0.6*t);
-    const y=w.y - t*w.rise;
-    const sz=w.s0*(26+64*t);
-    ctx.globalAlpha=0.085*Math.sin(Math.PI*t)*(0.5+0.5*INTENSITY);
-    ctx.drawImage(PUFF,x-sz,y-sz,sz*2,sz*2);
-  }
-  ctx.globalAlpha=1;
-}
-
-function drawEmbers(time){
-  ctx.globalCompositeOperation="lighter";
-  for(const e of pool){ if(!e.alive) continue;
-    const lifeF = e.age/e.life;
-    let a = e.base * (0.7+0.3*Math.sin(time*0.004+e.seed));
-    a *= (1 - Math.max(0, (lifeF-0.7)/0.3));         // fade out near end
-    a *= Math.min(1, e.age/500);                       // fade in
-    e.hot += (((e.pinned)?1:0)-e.hot)*0.12;
-    const sc = (e.size*(0.7+0.5*INTENSITY)) * (1+e.hot*0.5);
-    const spr = e.entry.status==="consumed"?SPR.consumed:SPR.unlit;
-    ctx.save(); ctx.globalAlpha=clamp(a+e.hot*0.4,0,1);
-    ctx.translate(e.x,e.y); ctx.rotate(e.rot);
-    ctx.drawImage(spr, -40*sc, -40*sc, 80*sc, 80*sc);
-    ctx.restore();
-  }
-  ctx.globalCompositeOperation="source-over";
-}
-
-/* ========== UPDATE ========== */
-let spawnAcc=0;
-function update(dt,time){
-  spawnAcc += dt;
-  const interval = 1050 / (0.5+INTENSITY);
-  let live=0; for(const e of pool) if(e.alive) live++;
-  if(spawnAcc>interval && live<maxEmbers()*kEmber){ spawnAcc=0; spawn(); }
-  // smoke wisps — only once the flame has properly caught
-  if(kFlame>0.6){
-    smokeAcc+=dt;
-    if(smokeAcc>1400/(0.4+INTENSITY) && SMOKE.length<7){
-      smokeAcc=0;
-      const fh=Math.min(H*0.46,150+150*INTENSITY)*0.88;
-      SMOKE.push({ x:cx+(Math.random()-0.5)*16, y:baseY-fh, age:0, life:6500+Math.random()*2800,
-                   rise:H*0.16+Math.random()*H*0.10, seed:Math.random()*9, s0:0.8+Math.random()*0.6 });
-    }
-  }
-  for(let i=SMOKE.length-1;i>=0;i--){ const w=SMOKE[i]; w.age+=dt; if(w.age>=w.life) SMOKE.splice(i,1); }
-  for(const e of pool){ if(!e.alive) continue;
-    e.age+=dt;
-    if(!e.pinned){
-      // gentle pointer attraction
-      if(ptr.active){ const dx=ptr.x-e.x, dy=ptr.y-e.y, d=Math.hypot(dx,dy);
-        if(d<210 && d>1){ const f=(1-d/210)*0.010*INTENSITY; const rep = d<48?-0.5:1; e.vx+=dx/d*f*rep; e.vy+=dy/d*f*rep; } }
-      e.vy += -0.0009*dt;                 // buoyancy
-      e.vx += Math.sin(time*0.001+e.seed)*0.0006*dt;
-      e.vx*=0.996;
-      e.x+=e.vx*dt*0.06; e.y+=e.vy*dt*0.06; e.rot+=e.rotV*dt;
-    }
-    if(e.age>e.life || e.y< -40){ e.alive=false; e.entry=null; }
-  }
-  if(hovered){ tip.style.left=hovered.x+"px"; tip.style.top=hovered.y+"px"; }
-}
-
-/* ========== LOOP (dt-clamped, fps-adaptive, visibility-paused) ========== */
-let raf=0, last=performance.now(), frozen=false;
-let probe=[], probed=false;
-
-/* the kindle — coals catch first, then the flame, then the embers rise */
-let kindleT0=performance.now(), kCoal=0, kFlame=0, kEmber=0;
-function kindle(now){
-  if(frozen){ kCoal=kFlame=kEmber=1; return; }
-  const K=clamp((now-kindleT0)/2800,0,1);
-  if(K>=1){ kCoal=kFlame=kEmber=1; return; }
-  const ez=t=>1-Math.pow(1-t,3), sub=(a,b)=>ez(clamp((K-a)/(b-a),0,1));
-  kCoal=sub(0,0.45); kFlame=sub(0.25,0.8); kEmber=sub(0.55,1);
-}
-
-function frame(now){
-  const dt=Math.min(now-last,33); last=now;
-  kindle(now);
-  // adaptive: once the kindle settles, sample ~50 frames, ease off if slow
-  if(!probed && now-kindleT0>2900){ probe.push(dt); if(probe.length>=50){ probed=true;
-    const avg=probe.reduce((a,b)=>a+b,0)/probe.length;
-    if(avg>26){ INTENSITY=Math.max(0.3,INTENSITY*0.7); buildSnowfall(); } } }
-  // fade *toward the scene* — the trail smears keep working over a real background
-  ctx.globalCompositeOperation="source-over";
-  ctx.globalAlpha=0.26; ctx.drawImage(SCENE,0,0,W,H); ctx.globalAlpha=1;
-  drawStars(now); drawBackground(now);
-  drawSnow(now,0); drawSnow(now,1);
-  drawGlints(now); drawLightPool(now);
-  drawFlame(now); drawSmoke(now); drawEmbers(now);
-  drawSnow(now,2);
-  drawNoise();
-  update(dt, now);
-  raf=requestAnimationFrame(frame);
-}
-function start(){ if(frozen||raf) return; last=performance.now(); raf=requestAnimationFrame(frame); }
-function stop(){ cancelAnimationFrame(raf); raf=0; }
-document.addEventListener("visibilitychange", ()=>{ if(document.hidden) stop(); else start(); });
-
-/* ========== REDUCED-MOTION STATIC FRAME ========== */
-function drawStaticFrame(){
-  kCoal=kFlame=kEmber=1;
-  ctx.setTransform(DPR,0,0,DPR,0,0);
-  ctx.globalCompositeOperation="source-over"; ctx.globalAlpha=1;
-  ctx.drawImage(SCENE,0,0,W,H);
-  drawStars(900); drawGlints(900); drawLightPool(900);
-  // still glow + flame
-  drawFlame(1200);
-  // a still breath of smoke
-  ctx.globalCompositeOperation="source-over";
-  const fh=Math.min(H*0.46,150+150*INTENSITY)*0.88;
-  [[0,-26,30],[12,-84,46],[-16,-150,62]].forEach((s,i)=>{
-    ctx.globalAlpha=0.07-0.018*i;
-    ctx.drawImage(PUFF, cx+s[0]-s[2], baseY-fh+s[1]-s[2], s[2]*2, s[2]*2);
-  });
-  ctx.globalAlpha=1;
-  // one quiet pass of falling snow, held still
-  drawSnow(600,0); drawSnow(600,1); drawSnow(600,2);
-  // scatter embers in a gentle constellation, bound to entries (static, still clickable)
-  ctx.globalCompositeOperation="lighter";
-  let i=0; for(const e of pool){ e.alive=false; }
-  ENTRIES.forEach((entry,idx)=>{
-    const e=pool[idx]; e.reset(); e.alive=true; e.entry=entry; e.pinned=true; e.age=1000; e.life=1e9; e.base=entry.status==="consumed"?0.9:0.55;
-    const ang = -Math.PI/2 + (idx-(ENTRIES.length-1)/2)*0.34;
-    const rad = 150 + (idx%2)*70;
-    e.x = cx + Math.cos(ang)*rad; e.y = baseY - 120 - Math.abs(Math.sin(ang))*120 - (idx%3)*26;
-    e.size = 0.9+(entry.impact||3)/10;
-    const spr=entry.status==="consumed"?SPR.consumed:SPR.unlit;
-    ctx.save(); ctx.globalAlpha=e.base; ctx.translate(e.x,e.y); ctx.drawImage(spr,-44*e.size,-44*e.size,88*e.size,88*e.size); ctx.restore();
-  });
-  ctx.globalCompositeOperation="source-over";
-  drawNoise();
-}
-
-/* ========== GLASS PANEL (reviews + sections) ========== */
-const QUOTES=[
-  {text:"We are what we repeatedly do. Excellence, then, is not an act, but a habit.",author:"Will Durant",source:"summarising Aristotle"},
-  {text:"Read books are far less valuable than unread ones.",author:"Nassim Nicholas Taleb",source:"The Black Swan"},
-  {text:"You could leave life right now. Let that determine what you do and say and think.",author:"Marcus Aurelius",source:"Meditations"},
-  {text:"It is not that we have a short time to live, but that we waste a lot of it.",author:"Seneca",source:"On the Shortness of Life"},
-];
-const MISOGI=[
-  {year:2026,challenge:"Kumano Kodo",status:"Completed",notes:"The first one — a pilgrimage across the Kii Peninsula, refuge to refuge. The wall is mostly in the head."},
-  {year:2027,challenge:"Camino de Santiago · Camino Frances",status:"Planned · Sept 1",notes:"780 km on foot, St-Jean to Santiago. With Kumano done, this earns the dual-pilgrim credential."},
-];
-const panel=document.getElementById("panel"), pbody=document.getElementById("panelBody");
-let lastFocus=null;
-function showPanel(html){
-  pbody.innerHTML=html;
-  lastFocus=document.activeElement;
-  if(typeof panel.showModal==="function"){ if(!panel.open) panel.showModal(); } else panel.setAttribute("open","");
-  const c=pbody.querySelector(".item__close"); if(c) c.addEventListener("click",closePanel);
-}
-function openPanel(entry){
-  const consumed=entry.status==="consumed";
-  showPanel(`
-    <button class="item__close" aria-label="Close">&times;</button>
-    <div class="item__type">${cap(entry.type)}${consumed?"":" · in the antilibrary"}</div>
-    <h2 class="item__title" id="panelTitle">${esc(entry.title)}</h2>
-    <div class="item__creator">${esc(entry.creator)}</div>
-    <div class="item__meta">
-      <span><b>${consumed?"Read":"Queued"}</b> ${esc(entry.date||"")}</span>
-      <span><b>Impact</b> ${"●".repeat(entry.impact||0)}${"○".repeat(5-(entry.impact||0))}</span>
-      ${entry.via?`<span><b>Via</b> ${esc(entry.via)}</span>`:""}
-    </div>
-    <div class="item__tags">${(entry.tags||[]).map(t=>`<span>${esc(t)}</span>`).join("")}</div>
-    <div class="item-body">${entry.reviewHtml||"<p>—</p>"}</div>`);
-}
-function sectionHtml(sec){
-  const close=`<button class="item__close" aria-label="Close">&times;</button>`;
-  if(sec==="quotes") return close+`<h2 class="sec-head" id="panelTitle">Quotes</h2><p class="sec-sub">The marginalia that outlived the book.</p>`+
-    QUOTES.map(q=>`<figure class="quote"><blockquote class="quote__text">${esc(q.text)}</blockquote><figcaption class="quote__author">${esc(q.author)}${q.source?` &middot; <span class="quote__source">${esc(q.source)}</span>`:""}</figcaption></figure>`).join("");
-  if(sec==="misogi") return close+`<h2 class="sec-head" id="panelTitle">Misogi</h2><p class="sec-sub">One hard thing a year you have a real chance of not finishing.</p>`+
-    MISOGI.map(m=>`<div class="misogi"><div class="misogi__year">${m.year}</div><div><h3 class="misogi__challenge">${esc(m.challenge)}</h3><span class="misogi__status">${esc(m.status)}</span><p class="misogi__notes">${esc(m.notes)}</p></div></div>`).join("");
-  if(sec==="photos") return close+`<h2 class="sec-head" id="panelTitle">Photos</h2><p class="sec-sub">A few from the road. More as I go.</p><div class="item-body"><p>Kumano Kodo, 2026 — the first Misogi. Photos land here once I add them.</p></div>`;
-  return close+`<h2 class="sec-head" id="panelTitle">About</h2><div class="item-body"><p>A shelf of the things that stuck with me — and the far larger pile still waiting to. Each ember is one of them; the fire is the library. The reviews are mostly notes to my future self. Updated when I feel like it.</p></div>`;
-}
-function setActive(sec){ document.querySelectorAll(".mantel a").forEach(a=>a.classList.toggle("on", a.dataset.sec===sec)); }
-function openSection(sec){ if(sec==="library"){ closePanel(); return; } setActive(sec); showPanel(sectionHtml(sec)); }
-function closePanel(){ if(panel.open){ panel.close?.(); panel.removeAttribute("open"); } setActive("library"); if(lastFocus&&lastFocus.focus) lastFocus.focus(); }
-panel.addEventListener("click", e=>{ if(e.target===panel) closePanel(); });   // backdrop click
-panel.addEventListener("cancel", ()=>{ setActive("library"); });               // Esc → native
-document.querySelectorAll(".mantel a").forEach(a=>{ a.addEventListener("click", e=>{ e.preventDefault(); openSection(a.dataset.sec); }); });
-
-/* ========== ACCESSIBLE ENTRY LIST (keyboard + screen reader) ========== */
-const list=document.getElementById("emberList");
-ENTRIES.forEach((e,i)=>{ const a=document.createElement("a");
-  a.href="item/"+e.slug+".html"; a.dataset.slug=e.slug;
-  a.textContent=e.title+" — "+e.creator;
-  a.addEventListener("focus",()=>{ const em=pool.find(p=>p.alive&&p.entry===e); if(em){em.pinned=true;hovered=em;} });
-  a.addEventListener("click",ev=>{ ev.preventDefault(); openPanel(e); });
-  const li=document.createElement("li"); li.appendChild(a); list.appendChild(li);
-});
-
-/* ========== HINT DISMISS ========== */
-let hintGone=false;
-function dismissHint(){ if(hintGone) return; hintGone=true; setTimeout(()=>document.getElementById("hint").classList.add("gone"),2600); }
-setTimeout(dismissHint, 6000);
+/* ========== ICONS (24×24 stroke) ========== */
+const icon = (paths)=>`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">${paths}</svg>`;
+const ICONS = {
+  book:    icon('<path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5z"/><path d="M4 20.5A2.5 2.5 0 0 1 6.5 18H20v3H6.5A2.5 2.5 0 0 1 4 20.5z"/>'),
+  film:    icon('<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M7 5v14M17 5v14M3 9.5h4M3 14.5h4M17 9.5h4M17 14.5h4"/>'),
+  quote:   icon('<path d="M9 7c-2.5 1-4 3.2-4 6v4h5v-5H7c0-1.8.8-3.3 2.5-4.2zM19 7c-2.5 1-4 3.2-4 6v4h5v-5h-3c0-1.8.8-3.3 2.5-4.2z"/>'),
+  podcast: icon('<rect x="9" y="2.5" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21M8.5 21h7"/>'),
+  misogi:  icon('<path d="M3 19h18L15 7l-3 5-2-3z"/><path d="M12.5 9.5 15 7"/><circle cx="17.5" cy="5.5" r="1.6"/>'),
+  close:   icon('<path d="M6 6 18 18M18 6 6 18"/>'),
+};
 
 /* ========== HELPERS ========== */
-function clamp(v,a,b){ return Math.max(a,Math.min(b,v)); }
-function mix(a,b,t){ t=clamp(t,0,1); return [a[0]+(b[0]-a[0])*t, a[1]+(b[1]-a[1])*t, a[2]+(b[2]-a[2])*t]; }
-function cap(s){ return s? s[0].toUpperCase()+s.slice(1):""; }
+const $=(s)=>document.querySelector(s);
 function esc(s){ return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
-function debounce(fn,ms){ let t; return (...a)=>{clearTimeout(t);t=setTimeout(()=>fn(...a),ms);}; }
+function accentStyle(key){
+  const a=ACCENTS[CAT[key]?.accent]||ACCENTS.cyan;
+  return `--ec:${a.glow};--ec-soft:${a.soft};--ec-line:${a.line};--ec-text:${a.text}`;
+}
+const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+/* ========== STATE ========== */
+let cat="all", status="all", sort="curated";
+
+/* ========== HERO LINE ========== */
+(function(){
+  const total=ENTRIES.length, done=ENTRIES.filter(e=>statusKey(e)==="done").length;
+  $("#heroLine").innerHTML =
+    `An antilibrary is the collection of unread books — the ones that keep you curious. `+
+    `This is mine, extended: ${total} kept things across five orbits, with ${done} already lived. `+
+    `Press <span class="hl">⌘K</span> to find any of them in an instant.`;
+})();
+
+/* ========== ORBITS (hero progress rings) ========== */
+function ringSvg(pct, accentKey, iconKey){
+  const a=ACCENTS[accentKey], R=16, C=2*Math.PI*R, off=C*(1-pct);
+  return `<svg class="ring" viewBox="0 0 42 42">
+    <circle cx="21" cy="21" r="${R}" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="2.5"/>
+    <circle cx="21" cy="21" r="${R}" fill="none" stroke="${a.glow}" stroke-width="2.5" stroke-linecap="round"
+      stroke-dasharray="${C}" stroke-dashoffset="${off}" transform="rotate(-90 21 21)"
+      style="filter:drop-shadow(0 0 5px ${a.glow})"/>
+    <g transform="translate(12.5 12.5)" style="color:${a.glow}">
+      <g style="width:17px;height:17px">${ICONS[iconKey].replace('<svg ','<svg width="17" height="17" ')}</g>
+    </g>
+  </svg>`;
+}
+function renderOrbits(){
+  $("#orbits").innerHTML = CATEGORIES.map(c=>{
+    const set=ENTRIES.filter(e=>e.type===c.key);
+    const done=set.filter(e=>statusKey(e)==="done").length;
+    const pct=set.length?done/set.length:0;
+    return `<div class="orbit ${cat===c.key?"on":""}" data-cat="${c.key}" style="${accentStyle(c.key)}" role="button" tabindex="0">
+      ${ringSvg(pct,c.accent,c.key)}
+      <span class="meta"><span class="n">${c.label}</span><span class="s">${done}/${set.length} ${c.doneVerb}</span></span>
+    </div>`;
+  }).join("");
+  document.querySelectorAll(".orbit").forEach(el=>{
+    const go=()=>{ setCat(cat===el.dataset.cat?"all":el.dataset.cat); };
+    el.addEventListener("click",go);
+    el.addEventListener("keydown",e=>{ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); go(); } });
+  });
+}
+
+/* ========== TOOLBAR ========== */
+function renderChips(){
+  const counts={ all:ENTRIES.length };
+  CATEGORIES.forEach(c=> counts[c.key]=ENTRIES.filter(e=>e.type===c.key).length);
+  $("#chips").innerHTML =
+    `<span class="chip ${cat==="all"?"on":""}" data-cat="all">All <span class="ct">${counts.all}</span></span>`+
+    CATEGORIES.map(c=>`<span class="chip ${cat===c.key?"on":""}" data-cat="${c.key}" style="${accentStyle(c.key)}">
+      <span class="dot"></span>${c.label} <span class="ct">${counts[c.key]}</span></span>`).join("");
+  document.querySelectorAll(".chip").forEach(el=>
+    el.addEventListener("click",()=> setCat(el.dataset.cat==="all"?"all":(cat===el.dataset.cat?"all":el.dataset.cat))));
+}
+function renderSegs(){
+  const buckets={ all:ENTRIES.length,
+    queue:ENTRIES.filter(e=>statusKey(e)==="queue").length,
+    done:ENTRIES.filter(e=>statusKey(e)==="done").length };
+  $("#statusSeg").innerHTML = [["all","All"],["queue","Queue"],["done","Lived"]]
+    .map(([k,l])=>`<button class="${status===k?"on":""}" data-status="${k}">${l} <span class="n">${buckets[k]}</span></button>`).join("");
+  $("#sortSeg").innerHTML = [["curated","Curated"],["title","A–Z"],["recent","Recent"]]
+    .map(([k,l])=>`<button class="${sort===k?"on":""}" data-sort="${k}">${l}</button>`).join("");
+  document.querySelectorAll("#statusSeg button").forEach(b=> b.addEventListener("click",()=>{ status=b.dataset.status; renderAll(); }));
+  document.querySelectorAll("#sortSeg button").forEach(b=> b.addEventListener("click",()=>{ sort=b.dataset.sort; renderAll(); }));
+}
+
+function setCat(k){ cat=k; renderAll(); }
+
+/* ========== CARDS ========== */
+function visibleEntries(){
+  let list=ENTRIES.filter(e=> (cat==="all"||e.type===cat) && (status==="all"||statusKey(e)===status));
+  if(sort==="title") list=[...list].sort((a,b)=>a.title.localeCompare(b.title));
+  else if(sort==="recent") list=[...list].sort((a,b)=>(b.sortKey||0)-(a.sortKey||0));
+  return list;
+}
+function cardHtml(e,i){
+  const isQuote=e.type==="quote", sk=statusKey(e);
+  const seal = sk==="done" ? `<svg class="seal" viewBox="0 0 24 24" style="color:var(--ec-text)">
+      <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="1" opacity=".5"/>
+      <path d="m7.5 12.2 3 3 6-6.4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>` : "";
+  const by = isQuote ? `<p class="by">— <b>${esc(e.creator)}</b></p>`
+                     : `<p class="by">by <b>${esc(e.creator)}</b></p>`;
+  return `<article class="card ${isQuote?"is-quote":""}" data-slug="${e.slug}"
+      style="${accentStyle(e.type)};animation-delay:${Math.min(i,12)*0.045}s" tabindex="0" role="button"
+      aria-label="${esc(e.title)}">
+    ${seal}
+    <div class="row1">
+      <span class="badge">${ICONS[e.type]}${e.type}</span>
+      <span class="grow"></span>
+      <span class="status-pip pip-${sk}"><i></i>${statusVerb(e)}</span>
+    </div>
+    <h3>${isQuote?"“"+esc(e.title)+"”":esc(e.title)}</h3>
+    ${by}
+    <div class="foot"><div class="tagrow">${(e.tags||[]).slice(0,3).map(t=>`<span class="tag">${esc(t)}</span>`).join("")}</div></div>
+  </article>`;
+}
+function renderGrid(){
+  const list=visibleEntries();
+  $("#grid").innerHTML=list.map(cardHtml).join("");
+  $("#emptyState").hidden=list.length>0;
+  document.querySelectorAll(".card").forEach(el=>{
+    const entry=ENTRIES.find(e=>e.slug===el.dataset.slug);
+    el.addEventListener("click",()=>openDrawer(entry));
+    el.addEventListener("keydown",e=>{ if(e.key==="Enter"){ openDrawer(entry); } });
+    if(!reduceMotion){
+      el.addEventListener("mousemove",ev=>{
+        const r=el.getBoundingClientRect();
+        const px=(ev.clientX-r.left)/r.width, py=(ev.clientY-r.top)/r.height;
+        el.style.setProperty("--mx",(px*100)+"%"); el.style.setProperty("--my",(py*100)+"%");
+        el.style.transform=`perspective(900px) rotateX(${(py-0.5)*-5}deg) rotateY(${(px-0.5)*6}deg) translateY(-4px)`;
+      });
+      el.addEventListener("mouseleave",()=>{ el.style.transform=""; });
+    }
+  });
+}
+function renderAll(){ renderOrbits(); renderChips(); renderSegs(); renderGrid(); }
+
+/* ========== DRAWER ========== */
+const drawer=$("#drawer"), scrim=$("#scrim");
+let drawerOpen=false, lastFocus=null;
+function factsFor(e){
+  const f=[];
+  const dots=n=>"●".repeat(n)+"○".repeat(5-n);
+  const cleanDate=(e.date||"").replace(/^(queued|planned)\s*·?\s*/,"");
+  if(e.type==="quote"){ if(e.source) f.push(["Source",esc(e.source),""]); }
+  else if(e.type==="misogi"){ f.push([statusKey(e)==="done"?"Year":"Planned",esc(cleanDate),""]); }
+  else{
+    f.push([statusKey(e)==="done"?(e.type==="film"?"Watched":e.type==="podcast"?"Cadence":"Read"):"Queued", esc(cleanDate),""]);
+    if(e.impact) f.push(["Impact",dots(e.impact),"impact"]);
+    if(e.via) f.push(["Via",esc(e.via),""]);
+  }
+  return f;
+}
+function openDrawer(e, fromPalette){
+  const isQuote=e.type==="quote";
+  drawer.className=`drawer ${isQuote?"is-quote":""}`;
+  drawer.style.cssText=accentStyle(e.type);
+  drawer.innerHTML=`
+    <div class="dh">
+      <button class="dclose" id="dclose" aria-label="Close">${ICONS.close}</button>
+      <span class="badge">${ICONS[e.type]}${e.type}</span>
+      <h2>${isQuote?"“"+esc(e.title)+"”":esc(e.title)}</h2>
+      <div class="dby">${isQuote?"— ":"by "}<b>${esc(e.creator)}</b></div>
+    </div>
+    <div class="dbody">
+      <div class="kv">${factsFor(e).map(([l,v,cls])=>`<div class="cell"><div class="l">${l}</div><div class="vv ${cls}">${v}</div></div>`).join("")}</div>
+      ${e.reviewHtml?`<div class="dsection-t">Marginalia</div><div class="dnote">${e.reviewHtml}</div>`:""}
+      ${(e.tags&&e.tags.length)?`<div class="dsection-t">Threads</div><div class="tagrow">${e.tags.map(t=>`<span class="tag">${esc(t)}</span>`).join("")}</div>`:""}
+    </div>`;
+  $("#dclose").addEventListener("click",closeDrawer);
+  lastFocus=fromPalette?null:document.activeElement;
+  drawerOpen=true;
+  requestAnimationFrame(()=>{ scrim.classList.add("show"); drawer.classList.add("show"); $("#dclose").focus(); });
+}
+function openAbout(){
+  drawer.className="drawer"; drawer.style.cssText="";
+  drawer.innerHTML=`
+    <div class="dh">
+      <button class="dclose" id="dclose" aria-label="Close">${ICONS.close}</button>
+      <h2>About</h2>
+      <div class="dby">a commonplace book, kept in the open</div>
+    </div>
+    <div class="dbody"><div class="dnote">${ABOUT_HTML}</div></div>`;
+  $("#dclose").addEventListener("click",closeDrawer);
+  lastFocus=document.activeElement;
+  drawerOpen=true;
+  requestAnimationFrame(()=>{ scrim.classList.add("show"); drawer.classList.add("show"); $("#dclose").focus(); });
+}
+function closeDrawer(){
+  drawerOpen=false;
+  scrim.classList.remove("show"); drawer.classList.remove("show");
+  if(lastFocus&&lastFocus.focus) lastFocus.focus();
+}
+scrim.addEventListener("click",closeDrawer);
+$("#aboutLink").addEventListener("click",openAbout);
+
+/* ========== COMMAND PALETTE ========== */
+const palScrim=$("#palScrim"), palInput=$("#palInput"), palList=$("#palList"), palCount=$("#palCount");
+let palOpen=false, palSel=0, palResults=[];
+function palSearch(q){
+  const term=q.trim().toLowerCase();
+  return ENTRIES.map(e=>{
+    const hay=`${e.title} ${e.creator||""} ${e.source||""} ${(e.tags||[]).join(" ")} ${e.type}`.toLowerCase();
+    let score=0;
+    if(!term) score=1;
+    else if(e.title.toLowerCase().startsWith(term)) score=100;
+    else if(e.title.toLowerCase().includes(term)) score=70;
+    else if(hay.includes(term)) score=40;
+    else{ let i=0; for(const ch of hay){ if(ch===term[i]) i++; if(i===term.length) break; } if(term.length&&i===term.length) score=12; }
+    return { e, score };
+  }).filter(r=>r.score>0).sort((x,y)=>y.score-x.score||x.e.title.localeCompare(y.e.title)).slice(0,40).map(r=>r.e);
+}
+function highlight(text,q){
+  const term=q.trim(); if(!term) return esc(text);
+  const i=text.toLowerCase().indexOf(term.toLowerCase());
+  if(i<0) return esc(text);
+  return esc(text.slice(0,i))+"<em>"+esc(text.slice(i,i+term.length))+"</em>"+esc(text.slice(i+term.length));
+}
+function renderPal(){
+  const q=palInput.value;
+  palResults=palSearch(q);
+  palSel=Math.min(palSel,Math.max(0,palResults.length-1));
+  if(!palResults.length){ palList.innerHTML=`<div class="pal-empty">Nothing in the stacks by that name.</div>`; }
+  else{
+    const order=[], map={};
+    palResults.forEach(e=>{ if(!map[e.type]){ map[e.type]=[]; order.push(e.type); } map[e.type].push(e); });
+    let fi=-1;
+    palList.innerHTML=order.map(t=>`<div><div class="pal-group">${t==="misogi"?"Misogi":t+"s"}</div>`+
+      map[t].map(e=>{
+        fi++;
+        const sub=e.type==="quote"?e.creator:e.creator;
+        return `<div class="pal-item ${fi===palSel?"sel":""}" data-i="${fi}" style="${accentStyle(e.type)}">
+          <span class="pi-ic">${ICONS[e.type]}</span>
+          <span class="pi-main">
+            <div class="pi-t">${highlight(e.type==="quote"?"“"+e.title+"”":e.title,q)}</div>
+            <div class="pi-s">${esc(sub||"")}</div>
+          </span></div>`;
+      }).join("")+`</div>`).join("");
+    palList.querySelectorAll(".pal-item").forEach(el=>{
+      el.addEventListener("mouseenter",()=>{ palSel=+el.dataset.i; markSel(); });
+      el.addEventListener("click",()=>pickPal(+el.dataset.i));
+    });
+  }
+  palCount.textContent=`${palResults.length} of ${ENTRIES.length}`;
+}
+function markSel(){
+  palList.querySelectorAll(".pal-item").forEach(el=> el.classList.toggle("sel",+el.dataset.i===palSel));
+  const el=palList.querySelector(".pal-item.sel"); if(el&&el.scrollIntoView) el.scrollIntoView({block:"nearest"});
+}
+function pickPal(i){
+  const e=palResults[i]; if(!e) return;
+  closePal();
+  setTimeout(()=>openDrawer(e,true),120);
+}
+function openPal(){ palOpen=true; palScrim.classList.add("show"); palInput.value=""; palSel=0; renderPal(); setTimeout(()=>palInput.focus(),60); }
+function closePal(){ palOpen=false; palScrim.classList.remove("show"); palInput.blur(); }
+palInput.addEventListener("input",()=>{ palSel=0; renderPal(); });
+palScrim.addEventListener("mousedown",e=>{ if(e.target===palScrim) closePal(); });
+$("#cmdTrigger").addEventListener("click",openPal);
+$("#cmdTrigger").addEventListener("keydown",e=>{ if(e.key==="Enter") openPal(); });
+
+/* ========== GLOBAL KEYS ========== */
+addEventListener("keydown",e=>{
+  if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==="k"){ e.preventDefault(); palOpen?closePal():openPal(); return; }
+  if(palOpen){
+    if(e.key==="ArrowDown"){ e.preventDefault(); palSel=Math.min(palResults.length-1,palSel+1); markSel(); }
+    else if(e.key==="ArrowUp"){ e.preventDefault(); palSel=Math.max(0,palSel-1); markSel(); }
+    else if(e.key==="Enter"){ e.preventDefault(); pickPal(palSel); }
+    else if(e.key==="Escape"){ e.preventDefault(); closePal(); }
+    return;
+  }
+  if(e.key==="Escape"&&drawerOpen){ closeDrawer(); return; }
+  if(e.key==="/"&&!/INPUT|TEXTAREA/.test(document.activeElement.tagName)){ e.preventDefault(); openPal(); }
+});
+
+/* ========== CURSOR AURA ========== */
+const aura=$("#aura");
+addEventListener("pointermove",e=>{ aura.style.transform=`translate(${e.clientX}px,${e.clientY}px)`; },{passive:true});
+
+/* ========== FLOATING MOTES ========== */
+(function(){
+  if(reduceMotion) return;
+  const c=$("#motes"), ctx=c.getContext("2d");
+  let w,h,parts=[];
+  const DPR=Math.min(2,devicePixelRatio||1);
+  function resize(){ w=c.width=innerWidth*DPR; h=c.height=innerHeight*DPR; c.style.width=innerWidth+"px"; c.style.height=innerHeight+"px"; }
+  resize(); addEventListener("resize",resize);
+  const N=Math.min(70,Math.floor(innerWidth/22));
+  for(let i=0;i<N;i++) parts.push({
+    x:Math.random()*innerWidth*DPR, y:Math.random()*innerHeight*DPR, r:(Math.random()*1.6+0.4)*DPR,
+    vy:-(Math.random()*0.22+0.04)*DPR, vx:(Math.random()-.5)*0.12*DPR,
+    a:Math.random()*0.6+0.2, tw:Math.random()*Math.PI*2, sp:Math.random()*0.02+0.005,
+    hue:Math.random()<0.5?"190,225,255":(Math.random()<0.5?"190,170,255":"150,240,220")
+  });
+  (function loop(){
+    ctx.clearRect(0,0,w,h);
+    for(const p of parts){
+      p.y+=p.vy; p.x+=p.vx; p.tw+=p.sp;
+      if(p.y<-10){ p.y=h+10; p.x=Math.random()*w; }
+      const a=p.a*(0.55+0.45*Math.sin(p.tw));
+      ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,7);
+      ctx.fillStyle=`rgba(${p.hue},${a})`; ctx.shadowBlur=8*DPR; ctx.shadowColor=`rgba(${p.hue},${a})`;
+      ctx.fill();
+    }
+    requestAnimationFrame(loop);
+  })();
+})();
 
 /* ========== BOOT ========== */
-resize();
-buildFlame();
-buildPit();
-buildBG();
-if(reduceMotion){
-  frozen=true; drawStaticFrame();
-  const n=document.createElement("div"); n.className="reduced-note"; n.textContent="reduced-motion · the fire is still"; document.body.appendChild(n);
-  // static embers still hoverable/clickable
-  cv.addEventListener("pointermove",e=>hover(e.clientX,e.clientY),{passive:true});
-} else {
-  start();
-}
+renderAll();
 })();
 </script>
 </body>
