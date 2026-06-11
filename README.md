@@ -17,3 +17,10 @@ becomes a blurred-and-darkened backdrop — populate with `bash tools/fetch_cove
 scanned journal page in a lightbox.
 
 Live: https://christian93kg.github.io/antilibrary/
+
+## Image credits
+
+Most covers are fetched from the iTunes Search API (book/film art). Exceptions:
+
+- `misogi-kumano-kodo-2026.jpg` — "Kumano Kodo forest" by **VKaeru**, [CC BY-SA 3.0](https://creativecommons.org/licenses/by-sa/3.0), via [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Kumano_Kodo_forest.jpg).
+- `misogi-tmb-2027.jpg` — owner photo (Mont Blanc massif, golden hour).

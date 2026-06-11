@@ -175,7 +175,7 @@ body{
 /* blurred & darkened cover backdrop — only shows once the image loads */
 .cardbg{ position:absolute; inset:0; z-index:0; opacity:0; transition:opacity .8s; pointer-events:none; border-radius:inherit; overflow:hidden; }
 .cardbg.ok{ opacity:1; }
-.cardbg img{ width:100%; height:100%; object-fit:cover; filter:blur(9px) brightness(.69) saturate(1.15); transform:scale(1.2); }
+.cardbg img{ width:100%; height:100%; object-fit:cover; filter:blur(7.2px) brightness(.69) saturate(1.15); transform:scale(1.2); }
 .cardbg::after{ content:''; position:absolute; inset:0; background:linear-gradient(160deg, rgba(10,13,30,.25), rgba(5,6,15,.39)); }
 .card > *:not(.cardbg){ position:relative; z-index:1; }
 .card::before,.card::after{ z-index:2; }
@@ -190,11 +190,13 @@ body{
   background:var(--ec-soft); border:1px solid var(--ec-line); }
 .badge svg{ width:13px; height:13px; }
 .card .grow{ flex:1; }
-.status-pip{ display:inline-flex; align-items:center; gap:7px; font-size:11.5px; letter-spacing:.05em; color:var(--ink-faint); }
+.status-pip{ display:inline-flex; align-items:center; gap:7px; font-size:11.5px; letter-spacing:.05em; color:var(--ink-dim); text-shadow:0 1px 3px rgba(3,5,14,.7); }
 .status-pip i{ width:8px; height:8px; border-radius:50%; display:inline-block; }
 .pip-queue i{ background:transparent; border:1.5px solid var(--ink-faint); }
 .pip-active i{ background:var(--accent); box-shadow:0 0 9px var(--accent); animation:pulse 2.4s infinite; }
+.pip-active{ color:var(--accent); }
 .pip-done i{ background:#9affc0; box-shadow:0 0 9px #9affc0; }
+.pip-done{ color:#9affc0; }
 @keyframes pulse{ 50%{ opacity:.4; } }
 
 .card h3{ font-family:'Cormorant Garamond',serif; font-weight:600; font-size:25px; line-height:1.12; margin:0 0 8px;
@@ -233,7 +235,7 @@ body{
   background:radial-gradient(60% 100% at 28% 0%, var(--ec-soft, var(--accent-soft)), transparent 70%); pointer-events:none; }
 .dhbg{ position:absolute; inset:0; z-index:0; opacity:0; transition:opacity .8s; pointer-events:none; }
 .dhbg.ok{ opacity:1; }
-.dhbg img{ width:100%; height:100%; object-fit:cover; filter:blur(11px) brightness(.7) saturate(1.15); transform:scale(1.25); }
+.dhbg img{ width:100%; height:100%; object-fit:cover; filter:blur(8.8px) brightness(.7) saturate(1.15); transform:scale(1.25); }
 .dhbg::after{ content:''; position:absolute; inset:0; background:linear-gradient(165deg, rgba(12,15,34,.23), rgba(8,10,24,.43)); }
 .drawer .dh > *:not(.dhbg){ position:relative; z-index:3; }
 .drawer .dbody{ padding:28px 36px 40px; overflow-y:auto; flex:1; }
@@ -440,7 +442,7 @@ const ENTRIES = [
     reviewHtml:`<p><em class="unlit">Still in the antilibrary — not yet read.</em></p>
     <p>Came off a reel — @becomingalii, on existential freedom: life carries no built-in meaning, so the meaning is yours to author, and the freedom turns out to be less a gift than a weight. Roquentin drifts the cafés of Bouville, nauseated by the brute fact of just <em>existing</em>.</p>
     <p>Shelved on purpose against the Stoics two cards over. They tell me there's an order to align with; Sartre says I'm the one projecting order onto a void. I want the strongest version of the argument I don't already run — both sides, same shelf.</p>` },
-  { slug:"misogi-kumano-kodo-2026", title:"Kumano Kodo", creator:"2026 Misogi", type:"misogi", status:"consumed", date:"2026", sortKey:202600, tags:["pilgrimage","japan"] },
+  { slug:"misogi-kumano-kodo-2026", title:"Kumano Kodo", creator:"2026 Misogi", type:"misogi", status:"consumed", date:"2026", sortKey:202600, cover:"assets/covers/misogi-kumano-kodo-2026.jpg", tags:["pilgrimage","japan"] },
   { slug:"misogi-tmb-2027", title:"Tour du Mont Blanc", creator:"2027 Misogi", type:"misogi", status:"to-consume", date:"2027 · 09", sortKey:202709,
     cover:"assets/covers/misogi-tmb-2027.jpg",
     summary:"The 2027 Misogi: 161 km around Mont Blanc, refuge to refuge through France, Italy, and Switzerland — ~9,000 m of climbing across ten days on foot. This year the challenge isn't going alone; it's pulling eleven friends up the mountain with me.",
