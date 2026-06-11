@@ -27,6 +27,7 @@ fetch() { # <slug> <media> <search term>
 echo "Fetching covers…"
 fetch shadow-of-the-torturer  ebook   "shadow of the torturer gene wolfe"
 fetch claw-of-the-conciliator ebook   "claw of the conciliator gene wolfe"
+fetch nausea                  ebook   "nausea jean-paul sartre"
 fetch meditations             ebook   "meditations marcus aurelius gregory hays"
 fetch discourses              ebook   "discourses epictetus"
 fetch sandworm                ebook   "sandworm andy greenberg"
