@@ -943,7 +943,7 @@ function accentStyle(key){
 const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 /* ========== STATE ========== */
-let cat="all", status="all", sort="curated";
+let cat="all", status="all", sort="title";
 
 /* ========== HERO LINE ========== */
 (function(){
@@ -986,8 +986,10 @@ function renderOrbits(){
 
 /* ========== TOOLBAR ========== */
 function renderChips(){
-  const counts={ all:ENTRIES.length };
-  CATEGORIES.forEach(c=> counts[c.key]=ENTRIES.filter(e=>e.type===c.key).length);
+  // counts reflect the active status filter (faceted)
+  const pool=ENTRIES.filter(e=> status==="all"||statusKey(e)===status);
+  const counts={ all:pool.length };
+  CATEGORIES.forEach(c=> counts[c.key]=pool.filter(e=>e.type===c.key).length);
   $("#chips").innerHTML =
     `<span class="chip ${cat==="all"?"on":""}" data-cat="all">All <span class="ct">${counts.all}</span></span>`+
     CATEGORIES.map(c=>`<span class="chip ${cat===c.key?"on":""}" data-cat="${c.key}" style="${accentStyle(c.key)}">
@@ -996,9 +998,11 @@ function renderChips(){
     el.addEventListener("click",()=> setCat(el.dataset.cat==="all"?"all":(cat===el.dataset.cat?"all":el.dataset.cat))));
 }
 function renderSegs(){
-  const buckets={ all:ENTRIES.length,
-    queue:ENTRIES.filter(e=>statusKey(e)==="queue").length,
-    done:ENTRIES.filter(e=>statusKey(e)==="done").length };
+  // counts reflect the active category tab (faceted)
+  const pool=ENTRIES.filter(e=> cat==="all"||e.type===cat);
+  const buckets={ all:pool.length,
+    queue:pool.filter(e=>statusKey(e)==="queue").length,
+    done:pool.filter(e=>statusKey(e)==="done").length };
   $("#statusSeg").innerHTML = [["all","All"],["queue","Queue"],["done","Lived"]]
     .map(([k,l])=>`<button class="${status===k?"on":""}" data-status="${k}">${l} <span class="n">${buckets[k]}</span></button>`).join("");
   $("#sortSeg").innerHTML = [["curated","Curated"],["title","A–Z"],["recent","Recent"]]
